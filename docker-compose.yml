@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: my-game-shelf-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-mygameshelf}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-CHANGE_ME}
+      POSTGRES_DB: ${DB_NAME:-my_game_shelf}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-EXEC", "pg_isready -U ${DB_USER:-gameshelf}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+    # No ports - database is internal only
+
+  app:
+    build: .
+    container_name: my-game-shelf-app
+    ports:
+      - "${APP_PORT:-8080}:8080"  # User can change host port, container always 8080
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-mygameshelf}
+      DB_PASSWORD: ${DB_PASSWORD}:-CHANGE_ME}
+      DB_NAME: ${DB_NAME:-my_game_shelf}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+
+networks:
+  internal:
+
+volumes:
+  postgres_data:
