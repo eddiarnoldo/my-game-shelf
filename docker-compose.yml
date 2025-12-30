@@ -21,7 +21,7 @@ services:
     build: .
     container_name: my-game-shelf-app
     ports:
-      - "${APP_PORT:-8080}:8080"  # User can change host port, container always 8080
+      - "${APP_PORT:-8080}:8080"  # Change this if you want to use a different port on the host
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -39,4 +39,4 @@ networks:
   internal:
 
 volumes:
-  postgres_data:
+  postgres_data: # Uses default driver (local)

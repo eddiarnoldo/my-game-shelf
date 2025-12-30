@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: my-game-shelf-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-mygameshelf}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-CHANGE_ME}
+      POSTGRES_DB: ${DB_NAME:-my_game_shelf}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-EXEC", "pg_isready -U ${DB_USER:-gameshelf}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+volumes:
+  postgres_data_dev: # Uses default driver (local)
