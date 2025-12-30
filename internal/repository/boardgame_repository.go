@@ -17,7 +17,7 @@ func NewBoardGameRepository(db *pgxpool.Pool) *BoardGameRepository {
 	return &BoardGameRepository{db: db}
 }
 
-func (r *BoardGameRepository) Create(ctx context.Context, game models.BoardGame) error {
+func (r *BoardGameRepository) Create(ctx context.Context, game *models.BoardGame) error {
 	query := `INSERT into board_games 
 		(name, min_users, max_users, play_time_minutes, min_age, description)
 		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at`
