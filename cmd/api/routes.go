@@ -6,5 +6,10 @@ import (
 )
 
 func setupRoutes(router *gin.Engine, boardGameHandler *handlers.BoardGameHandler) {
-	router.POST("/api/game", boardGameHandler.CreateBoardGame)
+	api := router.Group("/api")
+	{
+		api.POST("/boardgame", boardGameHandler.CreateBoardGame)
+		api.GET("/boardgames", boardGameHandler.GetAll)
+		api.GET("/boardgames/:id", boardGameHandler.GetByID)
+	}
 }

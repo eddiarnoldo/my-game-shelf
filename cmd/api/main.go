@@ -11,6 +11,8 @@ import (
 	"github.com/eddiarnoldo/my-game-shelf/internal/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/joho/godotenv"
 )
 
 // Abstract run function to allow easier testing of main logic
@@ -22,6 +24,7 @@ func main() {
 }
 
 func run() error {
+	//Create dbURL and run migrations
 	err, dbURL := initializeDatabase()
 	if err != nil {
 		return err
@@ -49,7 +52,7 @@ func run() error {
 
 	//Create gin router
 	r := gin.Default()
-	setupRoutes(r)
+	setupRoutes(r, boardGameHandler)
 
 	// Start server
 	fmt.Println("Starting server on :8080")
@@ -57,6 +60,11 @@ func run() error {
 }
 
 func initializeDatabase() (error, string) {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using environment variables")
+	}
+
 	// Load environment variables
 	dbUser := getEnv("DB_USER", "gameshelf")
 	dbPassword := getEnv("DB_PASSWORD", "")

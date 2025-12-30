@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/eddiarnoldo/my-game-shelf/internal/models"
 	"github.com/eddiarnoldo/my-game-shelf/internal/repository"
@@ -27,10 +29,41 @@ func (h *BoardGameHandler) CreateBoardGame(c *gin.Context) {
 	}
 
 	if err := h.repo.Create(c.Request.Context(), &game); err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create board game"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, game)
+}
 
+// Return All the board games
+func (h *BoardGameHandler) GetAll(c *gin.Context) {
+	boardGames, err := h.repo.GetAll(c.Request.Context())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, boardGames)
+}
+
+func (h *BoardGameHandler) GetByID(c *gin.Context) {
+	idParam := c.Param("id")
+
+	// Convert string to int64 (base, bits)
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	game, err := h.repo.GetByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Board game not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, game)
 }

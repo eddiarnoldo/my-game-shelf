@@ -19,7 +19,7 @@ func NewBoardGameRepository(db *pgxpool.Pool) *BoardGameRepository {
 
 func (r *BoardGameRepository) Create(ctx context.Context, game *models.BoardGame) error {
 	query := `INSERT into board_games 
-		(name, min_users, max_users, play_time_minutes, min_age, description)
+		(name, min_players, max_players, play_time, min_age, description)
 		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at`
 
 	//Here we execute the query and assign the returned id and created_at to the game struct
@@ -33,6 +33,43 @@ func (r *BoardGameRepository) Create(ctx context.Context, game *models.BoardGame
 	).Scan(&game.ID, &game.CreatedAt)
 
 	return err
+}
+
+func (r *BoardGameRepository) GetAll(ctx context.Context) ([]*models.BoardGame, error) {
+	query := `SELECT id, name, min_players, max_players, play_time, min_age, description, created_at, updated_at
+		FROM board_games ORDER BY name ASC`
+
+	rows, err := r.db.Query(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Need to close resultset
+	defer rows.Close()
+
+	var boardGames []*models.BoardGame
+	for rows.Next() {
+		boardGame := &models.BoardGame{}
+		err := rows.Scan(
+			&boardGame.ID,
+			&boardGame.Name,
+			&boardGame.MinPlayers,
+			&boardGame.MaxPlayers,
+			&boardGame.PlayTime,
+			&boardGame.MinAge,
+			&boardGame.Description,
+			&boardGame.CreatedAt,
+			&boardGame.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		boardGames = append(boardGames, boardGame)
+	}
+
+	return boardGames, nil
 }
 
 func (r *BoardGameRepository) GetByID(ctx context.Context, id int64) (*models.BoardGame, error) {

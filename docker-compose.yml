@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-EXEC", "pg_isready -U ${DB_USER:-gameshelf}"]
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-mygameshelf}"]
       interval: 10s
       timeout: 5s
       retries: 5
