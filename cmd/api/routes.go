@@ -11,5 +11,6 @@ func setupRoutes(router *gin.Engine, boardGameHandler *handlers.BoardGameHandler
 		api.POST("/boardgame", boardGameHandler.CreateBoardGame)
 		api.GET("/boardgames", boardGameHandler.GetAll)
 		api.GET("/boardgames/:id", boardGameHandler.GetByID)
+		api.DELETE("/boardgames/:id", boardGameHandler.Delete)
 	}
 }

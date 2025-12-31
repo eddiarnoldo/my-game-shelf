@@ -6,10 +6,22 @@ meta {
 
 post {
   url: http://localhost:8080/api/boardgame
-  body: none
+  body: json
   auth: inherit
+}
+
+body:json {
+    {
+      "name": "Tacta",
+      "min_players": 2,
+      "max_players": 6,
+      "play_time": 20,
+      "min_age": 7,
+      "description": "¡Todo está conectado! En este juego de cartas de estrategia sutil, los jugadores giran, retuercen y giran sus cartas para alinear y cubrir las figuras de sus oponentes con cuadrados, triángulos y rectángulos iguales. Con un tablero en constante crecimiento, hasta 8 colores iluminan la noche de juego con TACTA. Analiza, crea estrategias y optimiza, porque en TACTA, cada carta cuenta."
+  }
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

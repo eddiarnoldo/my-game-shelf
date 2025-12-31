@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -66,4 +67,28 @@ func (h *BoardGameHandler) GetByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, game)
+}
+
+func (h *BoardGameHandler) Delete(c *gin.Context) {
+	idParam := c.Param("id")
+
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	err = h.repo.Delete(c.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrBoardGameNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Board game not found"})
+			return
+		}
+
+		// Any other error is internal server error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

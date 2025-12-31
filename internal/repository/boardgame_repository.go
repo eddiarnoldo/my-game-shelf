@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/eddiarnoldo/my-game-shelf/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -37,12 +36,12 @@ func (r *BoardGameRepository) Create(ctx context.Context, game *models.BoardGame
 
 func (r *BoardGameRepository) GetAll(ctx context.Context) ([]*models.BoardGame, error) {
 	query := `SELECT id, name, min_players, max_players, play_time, min_age, description, created_at, updated_at
-		FROM board_games ORDER BY name ASC`
+		FROM board_games ORDER BY id ASC`
 
 	rows, err := r.db.Query(ctx, query)
 
 	if err != nil {
-		return nil, err
+		return nil, ErrQueryFailed
 	}
 
 	//Need to close resultset
@@ -64,7 +63,7 @@ func (r *BoardGameRepository) GetAll(ctx context.Context) ([]*models.BoardGame, 
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, ErrQueryFailed
 		}
 		boardGames = append(boardGames, boardGame)
 	}
@@ -91,7 +90,7 @@ func (r *BoardGameRepository) GetByID(ctx context.Context, id int64) (*models.Bo
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, ErrQueryFailed
 	}
 
 	return &game, nil
@@ -103,11 +102,11 @@ func (r *BoardGameRepository) Delete(ctx context.Context, id int64) error {
 
 	commandTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		return err
+		return ErrQueryFailed
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("board game not found")
+		return ErrBoardGameNotFound
 	}
 
 	return nil

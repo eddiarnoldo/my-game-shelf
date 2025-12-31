@@ -30,19 +30,12 @@ func run() error {
 		return err
 	}
 
-	// Connect to database
-	log.Println("Connecting to database...")
-	dbPool, err := pgxpool.New(context.Background(), dbURL)
+	dbPool, err := connectToDatabase(dbURL)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
+		return err
 	}
-	defer dbPool.Close()
 
-	// Verify connection
-	if err := dbPool.Ping(context.Background()); err != nil {
-		log.Fatalf("Unable to ping database: %v", err)
-	}
-	log.Println("Database connection established")
+	defer dbPool.Close()
 
 	// Initialize repositories
 	boardGameRepo := repository.NewBoardGameRepository(dbPool)
@@ -66,7 +59,7 @@ func initializeDatabase() (error, string) {
 	}
 
 	// Load environment variables
-	dbUser := getEnv("DB_USER", "gameshelf")
+	dbUser := getEnv("DB_USER", "mygameshelf")
 	dbPassword := getEnv("DB_PASSWORD", "")
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "5432")
@@ -89,6 +82,25 @@ func initializeDatabase() (error, string) {
 	}
 
 	return nil, dbURL
+}
+
+func connectToDatabase(dbURL string) (*pgxpool.Pool, error) {
+	// Connect to database
+	log.Println("Connecting to database...")
+	dbPool, err := pgxpool.New(context.Background(), dbURL)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+		return nil, err
+	}
+
+	// Verify connection
+	if err := dbPool.Ping(context.Background()); err != nil {
+		log.Fatalf("Unable to ping database: %v", err)
+		return nil, err
+	}
+	log.Println("Database connection established")
+
+	return dbPool, nil
 }
 
 func runMigrations(dbURL string) error {
