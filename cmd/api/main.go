@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/eddiarnoldo/my-game-shelf/db"
 	"github.com/eddiarnoldo/my-game-shelf/internal/handlers"
 	"github.com/eddiarnoldo/my-game-shelf/internal/repository"
-	"github.com/gin-gonic/gin"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -45,11 +48,37 @@ func run() error {
 
 	//Create gin router
 	r := gin.Default()
+
+	allowedOrigins := getEnv("ALLOWED_ORIGINS", "*")
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     parseOrigins(allowedOrigins),
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowCredentials: true,
+	}))
+
 	setupRoutes(r, boardGameHandler)
 
 	// Start server
-	fmt.Println("Starting server on :8080")
-	return r.Run() // listen and serve on
+	port := getEnv("APP_PORT", "8080")
+	log.Printf("Starting server on port %s...", port)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+		return err
+	}
+	return nil
+}
+
+func parseOrigins(origins string) []string {
+	if origins == "*" {
+		return []string{"*"}
+	}
+	parts := strings.Split(origins, ",")
+	result := make([]string, len(parts))
+	for i, part := range parts {
+		result[i] = strings.TrimSpace(part)
+	}
+	return result
 }
 
 func initializeDatabase() (error, string) {
