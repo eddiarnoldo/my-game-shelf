@@ -11,7 +11,7 @@ function App() {
   const [games, setGames] = useState<BoardGame[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/boardgames')
+    fetch('/api/boardgames')
       .then(res => res.json())
       .then(data => setGames(data || []))
       .catch(err => console.error(err));
