@@ -5,9 +5,7 @@ import (
 )
 
 func Cors(origins string) gin.HandlerFunc {
-
 	return func(c *gin.Context) {
-
 		c.Writer.Header().Set("Access-Control-Allow-Origin", origins)
 		c.Header("Access-Control-Allow-Credentials", "true")
 		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept")

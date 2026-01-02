@@ -25,6 +25,7 @@ func InitServer(boardGameRepo *repository.BoardGameRepository) error {
 
 	// Start server
 	port := config.GetEnv("APP_PORT", "8080")
+
 	log.Printf("Starting server on port %s...", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

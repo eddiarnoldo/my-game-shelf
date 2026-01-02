@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/handlers"
+
 	"github.com/gin-gonic/gin"
 )
 
