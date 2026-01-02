@@ -42,10 +42,14 @@ func run() error {
 
 	// Initialize repositories
 	boardGameRepo := repository.NewBoardGameRepository(dbPool)
+	if err := startServer(boardGameRepo); err != nil {
+		return err
+	}
 
-	// Initialize handlers
-	boardGameHandler := handlers.NewBoardGameHandler(boardGameRepo)
+	return nil
+}
 
+func startServer(boardGameRepo *repository.BoardGameRepository) error {
 	//Create gin router
 	r := gin.Default()
 
@@ -56,6 +60,9 @@ func run() error {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		AllowCredentials: true,
 	}))
+
+	// Initialize handlers
+	boardGameHandler := handlers.NewBoardGameHandler(boardGameRepo)
 
 	setupRoutes(r, boardGameHandler)
 
