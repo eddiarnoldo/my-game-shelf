@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/eddiarnoldo/my-game-shelf/internal/models"
-	"github.com/eddiarnoldo/my-game-shelf/internal/repository"
+	"github.com/eddiarnoldo/my-game-shelf/src/internal/models"
+	"github.com/eddiarnoldo/my-game-shelf/src/internal/repository"
 	"github.com/gin-gonic/gin"
 )
 

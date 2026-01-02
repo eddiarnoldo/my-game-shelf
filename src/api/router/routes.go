@@ -1,11 +1,11 @@
-package main
+package router
 
 import (
-	"github.com/eddiarnoldo/my-game-shelf/internal/handlers"
+	"github.com/eddiarnoldo/my-game-shelf/src/internal/handlers"
 	"github.com/gin-gonic/gin"
 )
 
-func setupRoutes(router *gin.Engine, boardGameHandler *handlers.BoardGameHandler) {
+func RegisterRoutes(router *gin.Engine, boardGameHandler *handlers.BoardGameHandler) {
 	api := router.Group("/api")
 	{
 		api.POST("/boardgame", boardGameHandler.CreateBoardGame)

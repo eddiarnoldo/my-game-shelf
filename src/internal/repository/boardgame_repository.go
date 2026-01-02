@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/eddiarnoldo/my-game-shelf/internal/models"
+	"github.com/eddiarnoldo/my-game-shelf/src/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

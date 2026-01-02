@@ -3,6 +3,8 @@ package db
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -11,13 +13,24 @@ import (
 )
 
 func RunMigrations(dbURL string) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	// Look in src/db/migrations
+	migrationsPath := filepath.Join(wd, "db", "migrations")
+	migrationsURL := fmt.Sprintf("file://%s", migrationsPath)
+
 	m, err := migrate.New(
-		"file://db/migrations",
+		migrationsURL,
 		dbURL,
 	)
+
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}
+
 	defer m.Close()
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {

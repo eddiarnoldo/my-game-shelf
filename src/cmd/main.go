@@ -5,16 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
-	"github.com/eddiarnoldo/my-game-shelf/db"
-	"github.com/eddiarnoldo/my-game-shelf/internal/handlers"
-	"github.com/eddiarnoldo/my-game-shelf/internal/repository"
-
+	"github.com/eddiarnoldo/my-game-shelf/src/api"
+	"github.com/eddiarnoldo/my-game-shelf/src/config"
+	"github.com/eddiarnoldo/my-game-shelf/src/db"
+	"github.com/eddiarnoldo/my-game-shelf/src/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -42,50 +39,11 @@ func run() error {
 
 	// Initialize repositories
 	boardGameRepo := repository.NewBoardGameRepository(dbPool)
-	if err := startServer(boardGameRepo); err != nil {
+	if err := api.InitServer(boardGameRepo); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func startServer(boardGameRepo *repository.BoardGameRepository) error {
-	//Create gin router
-	r := gin.Default()
-
-	allowedOrigins := getEnv("ALLOWED_ORIGINS", "*")
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     parseOrigins(allowedOrigins),
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
-		AllowCredentials: true,
-	}))
-
-	// Initialize handlers
-	boardGameHandler := handlers.NewBoardGameHandler(boardGameRepo)
-
-	setupRoutes(r, boardGameHandler)
-
-	// Start server
-	port := getEnv("APP_PORT", "8080")
-	log.Printf("Starting server on port %s...", port)
-	if err := r.Run(":" + port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-		return err
-	}
-	return nil
-}
-
-func parseOrigins(origins string) []string {
-	if origins == "*" {
-		return []string{"*"}
-	}
-	parts := strings.Split(origins, ",")
-	result := make([]string, len(parts))
-	for i, part := range parts {
-		result[i] = strings.TrimSpace(part)
-	}
-	return result
 }
 
 func initializeDatabase() (error, string) {
@@ -95,12 +53,11 @@ func initializeDatabase() (error, string) {
 	}
 
 	// Load environment variables
-	dbUser := getEnv("DB_USER", "mygameshelf")
-	dbPassword := getEnv("DB_PASSWORD", "")
-	dbHost := getEnv("DB_HOST", "localhost")
-	dbPort := getEnv("DB_PORT", "5432")
-	dbName := getEnv("DB_NAME", "my_game_shelf")
-
+	dbUser := config.GetEnv("DB_USER", "mygameshelf")
+	dbPassword := config.GetEnv("DB_PASSWORD", "")
+	dbHost := config.GetEnv("DB_HOST", "localhost")
+	dbPort := config.GetEnv("DB_PORT", "5432")
+	dbName := config.GetEnv("DB_NAME", "my_game_shelf")
 	if dbPassword == "" {
 		log.Fatal("DB_PASSWORD environment variable is required")
 	}
@@ -143,12 +100,4 @@ func runMigrations(dbURL string) error {
 	log.Println("Running database migrations...")
 	err := db.RunMigrations(dbURL)
 	return err
-}
-
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
 }
