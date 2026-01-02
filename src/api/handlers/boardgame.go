@@ -21,7 +21,7 @@ func NewBoardGameHandler(repo *repository.BoardGameRepository) *BoardGameHandler
 }
 
 // This is the function that will handle the creation of a new board game
-func (h *BoardGameHandler) CreateBoardGame(c *gin.Context) {
+func (h *BoardGameHandler) HandleBoardGameCreate(c *gin.Context) {
 	var game models.BoardGame
 
 	if err := c.ShouldBindJSON(&game); err != nil {
@@ -39,7 +39,7 @@ func (h *BoardGameHandler) CreateBoardGame(c *gin.Context) {
 }
 
 // Return All the board games
-func (h *BoardGameHandler) GetAll(c *gin.Context) {
+func (h *BoardGameHandler) HandleGetBoardGames(c *gin.Context) {
 	boardGames, err := h.repo.GetAll(c.Request.Context())
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (h *BoardGameHandler) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, boardGames)
 }
 
-func (h *BoardGameHandler) GetByID(c *gin.Context) {
+func (h *BoardGameHandler) HandleGetBoardGameByID(c *gin.Context) {
 	idParam := c.Param("id")
 
 	// Convert string to int64 (base, bits)
@@ -69,7 +69,7 @@ func (h *BoardGameHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
-func (h *BoardGameHandler) Delete(c *gin.Context) {
+func (h *BoardGameHandler) HandleBoardGameDelete(c *gin.Context) {
 	idParam := c.Param("id")
 
 	id, err := strconv.ParseInt(idParam, 10, 64)

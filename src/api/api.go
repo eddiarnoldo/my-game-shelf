@@ -3,11 +3,12 @@ package api
 import (
 	"log"
 
+	"github.com/eddiarnoldo/my-game-shelf/src/api/handlers"
 	"github.com/eddiarnoldo/my-game-shelf/src/api/middleware"
 	"github.com/eddiarnoldo/my-game-shelf/src/api/router"
 	"github.com/eddiarnoldo/my-game-shelf/src/config"
-	"github.com/eddiarnoldo/my-game-shelf/src/internal/handlers"
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/repository"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +22,7 @@ func InitServer(boardGameRepo *repository.BoardGameRepository) error {
 	// Initialize handlers
 	boardGameHandler := handlers.NewBoardGameHandler(boardGameRepo)
 
+	//Setup API routes
 	router.RegisterRoutes(r, boardGameHandler)
 
 	// Start server
