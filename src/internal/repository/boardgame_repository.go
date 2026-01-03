@@ -12,6 +12,13 @@ type BoardGameRepository struct {
 	db *pgxpool.Pool
 }
 
+type BoardGameRepo interface {
+	Create(ctx context.Context, game *models.BoardGame) error
+	GetAll(ctx context.Context) ([]*models.BoardGame, error)
+	GetByID(ctx context.Context, id int64) (*models.BoardGame, error)
+	Delete(ctx context.Context, id int64) error
+}
+
 func NewBoardGameRepository(db *pgxpool.Pool) *BoardGameRepository {
 	return &BoardGameRepository{db: db}
 }
@@ -96,7 +103,6 @@ func (r *BoardGameRepository) GetByID(ctx context.Context, id int64) (*models.Bo
 	return &game, nil
 }
 
-// Delete removes a board game by ID
 func (r *BoardGameRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM board_games WHERE id = $1`
 

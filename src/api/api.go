@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitServer(boardGameRepo *repository.BoardGameRepository) error {
+func InitServer(boardGameRepo repository.BoardGameRepo) error {
 	//Create gin router
 	r := gin.Default()
 

@@ -12,11 +12,11 @@ import (
 )
 
 type BoardGameHandler struct {
-	repo *repository.BoardGameRepository
+	repo repository.BoardGameRepo
 }
 
 // Use this function to create a new BoardGameHandler
-func NewBoardGameHandler(repo *repository.BoardGameRepository) *BoardGameHandler {
+func NewBoardGameHandler(repo repository.BoardGameRepo) *BoardGameHandler {
 	return &BoardGameHandler{repo: repo}
 }
 

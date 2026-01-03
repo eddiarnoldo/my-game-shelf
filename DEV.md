@@ -45,3 +45,12 @@ This will create
 db/migrations/000001_create_games_table.up.sql
 db/migrations/000001_create_games_table.down.sql
 ```
+
+## How to run tests
+ ```bash
+go test ./src/api/handlers/...
+```
+
+Add `-v` to get more verbose output
+
+`...` is go package wildcard, it means: “Run tests for this package and all subpackages recursively”
