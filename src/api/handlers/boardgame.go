@@ -38,7 +38,6 @@ func (h *BoardGameHandler) HandleBoardGameCreate(c *gin.Context) {
 	c.JSON(http.StatusCreated, game)
 }
 
-// Return All the board games
 func (h *BoardGameHandler) HandleGetBoardGames(c *gin.Context) {
 	boardGames, err := h.repo.GetAll(c.Request.Context())
 
@@ -90,5 +89,12 @@ func (h *BoardGameHandler) HandleBoardGameDelete(c *gin.Context) {
 		return
 	}
 
+	/*
+		In Gin, when you call c.Status(), it sets the status code,
+		but if the response body gets written afterward
+		(which can happen automatically in some cases),
+		Gin may override it with 200 OK.
+	*/
 	c.Status(http.StatusNoContent)
+	c.Writer.WriteHeaderNow() // Force Gin to write the header immediately
 }
