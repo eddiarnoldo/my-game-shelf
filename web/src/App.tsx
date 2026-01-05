@@ -1,33 +1,18 @@
-import { useState, useEffect } from 'react';
-
-interface BoardGame {
-  id: number;
-  name: string;
-  min_players: number;
-  max_players: number;
-}
+import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import BoardGameDetailPage from './pages/BoardGameDetailPage';
+import AddGamePage from './pages/AddGamePage'; 
 
 function App() {
-  const [games, setGames] = useState<BoardGame[]>([]);
-
-  useEffect(() => {
-    fetch('/api/boardgames')
-      .then(res => res.json())
-      .then(data => setGames(data || []))
-      .catch(err => console.error(err));
-  }, []);
-
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>🎲 My Game Shelf</h1>
-      <ul>
-        {games.map(game => (
-          <li key={game.id}>
-            {game.name} ({game.min_players}-{game.max_players} players)
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="boardgame/:id" element={<BoardGameDetailPage />} />
+        <Route path="add" element={<AddGamePage />} />
+      </Route>
+    </Routes>
   );
 }
 
