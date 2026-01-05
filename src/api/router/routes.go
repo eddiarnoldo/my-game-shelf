@@ -1,11 +1,17 @@
 package router
 
 import (
-	"github.com/eddiarnoldo/my-game-shelf/src/api/handlers"
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(router *gin.Engine, boardGameHandler *handlers.BoardGameHandler) {
+type BoardGameHandlerInterface interface {
+	HandleBoardGameCreate(c *gin.Context)
+	HandleGetBoardGames(c *gin.Context)
+	HandleGetBoardGameByID(c *gin.Context)
+	HandleBoardGameDelete(c *gin.Context)
+}
+
+func RegisterRoutes(router *gin.Engine, boardGameHandler BoardGameHandlerInterface) {
 	api := router.Group("/api")
 	{
 		api.POST("/boardgame", boardGameHandler.HandleBoardGameCreate)
