@@ -14,3 +14,14 @@ type BoardGame struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
+
+type BoardGameImage struct {
+	ID            int64
+	BoardGameId   int64
+	Data          []byte
+	MimeType      string
+	ThumbnailData []byte
+	Type          string
+	DisplayOrder  int
+	UploadedAt    time.Time
+}

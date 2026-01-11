@@ -46,6 +46,11 @@ db/migrations/000001_create_games_table.up.sql
 db/migrations/000001_create_games_table.down.sql
 ```
 
+## How to connect to your DB?
+`psql -h localhost -p 5432 -U mygameshelf my_game_shelf`
+
+> Replace with your project params
+
 ## How to run tests
  ```bash
 go test ./src/api/handlers/...
