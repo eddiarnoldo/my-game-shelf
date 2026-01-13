@@ -11,17 +11,18 @@ type BoardGame struct {
 	PlayTime    int       `json:"play_time" binding:"required"`
 	MinAge      int       `json:"min_age" binding:"required"`
 	Description string    `json:"description" binding:"required"`
+	ImageIDs    []int64   `json:"image_ids,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type BoardGameImage struct {
 	ID            int64
-	BoardGameId   int64
-	Data          []byte
-	MimeType      string
+	BoardGameID   int64
+	ImageData     []byte
+	ImageMimeType string
 	ThumbnailData []byte
-	Type          string
+	ImageType     string
 	DisplayOrder  int
 	UploadedAt    time.Time
 }

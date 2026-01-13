@@ -39,7 +39,10 @@ func run() error {
 
 	// Initialize repositories
 	boardGameRepo := repository.NewBoardGameRepository(dbPool)
-	if err := api.InitServer(boardGameRepo); err != nil {
+	imageRepo := repository.NewBoardGameImageRepository(dbPool)
+
+	// Init server
+	if err := api.InitServer(boardGameRepo, imageRepo); err != nil {
 		return err
 	}
 

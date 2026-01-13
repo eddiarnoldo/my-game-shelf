@@ -3,8 +3,10 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/models"
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/repository"
@@ -12,12 +14,13 @@ import (
 )
 
 type BoardGameHandler struct {
-	repo repository.BoardGameRepo
+	repo      repository.BoardGameRepo
+	imageRepo repository.BoardGameImageRepo
 }
 
 // Use this function to create a new BoardGameHandler
-func NewBoardGameHandler(repo repository.BoardGameRepo) *BoardGameHandler {
-	return &BoardGameHandler{repo: repo}
+func NewBoardGameHandler(repo repository.BoardGameRepo, imageRepo repository.BoardGameImageRepo) *BoardGameHandler {
+	return &BoardGameHandler{repo: repo, imageRepo: imageRepo}
 }
 
 // This is the function that will handle the creation of a new board game
@@ -97,4 +100,83 @@ func (h *BoardGameHandler) HandleBoardGameDelete(c *gin.Context) {
 	*/
 	c.Status(http.StatusNoContent)
 	c.Writer.WriteHeaderNow() // Force Gin to write the header immediately
+}
+
+// Image handlers
+func (h *BoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
+	boardGameIDParam := c.Param("id")
+	boardGameID, err := strconv.ParseInt(boardGameIDParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board game ID"})
+		return
+	}
+
+	// 2. Get the uploaded file
+	file, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No image provided"})
+		return
+	}
+
+	// 3. Get image type from form
+	imageType := c.PostForm("imageType") //TODO create a constants file
+	if imageType != "cover" && imageType != "gameplay" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image type"})
+		return
+	}
+
+	// 4. Validate file size (e.g., max 10MB)
+	const maxFileSize = 10 * 1024 * 1024 // 10MB
+	if file.Size > maxFileSize {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File too large (max 10MB)"})
+		return
+	}
+
+	// 5. Validate MIME type
+	if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File must be an image"})
+		return
+	}
+
+	// 6. Open and read the file
+	openedFile, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read image"})
+		return
+	}
+	defer openedFile.Close()
+
+	// 7. Read file bytes
+	imageData, err := io.ReadAll(openedFile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read image data"})
+		return
+	}
+
+	// 8. TODO: Generate thumbnail (we'll do this next)
+	thumbnailData := imageData // For now, just use same data
+
+	// 9. Create image model
+	image := &models.BoardGameImage{
+		BoardGameID:   boardGameID,
+		ImageData:     imageData,
+		ImageMimeType: file.Header.Get("Content-Type"),
+		ThumbnailData: thumbnailData,
+		ImageType:     imageType,
+		DisplayOrder:  0, // TODO: Calculate this
+	}
+
+	// 10. Save to database
+	err = h.imageRepo.SaveImage(c.Request.Context(), image)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save image"})
+		return
+	}
+
+	// 11. Return success with image ID
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Image uploaded successfully",
+		"imageId": image.ID,
+	})
+
 }

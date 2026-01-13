@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitServer(boardGameRepo repository.BoardGameRepo) error {
+func InitServer(boardGameRepo repository.BoardGameRepo, imageRepo repository.BoardGameImageRepo) error {
 	//Create gin router
 	r := gin.Default()
 
@@ -20,7 +20,7 @@ func InitServer(boardGameRepo repository.BoardGameRepo) error {
 	r.Use(middleware.Cors(allowedOrigins))
 
 	// Initialize handlers
-	boardGameHandler := handlers.NewBoardGameHandler(boardGameRepo)
+	boardGameHandler := handlers.NewBoardGameHandler(boardGameRepo, imageRepo)
 
 	//Setup API routes
 	router.RegisterRoutes(r, boardGameHandler)

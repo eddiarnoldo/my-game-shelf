@@ -42,7 +42,7 @@ func createTestContext(req *http.Request) (*gin.Context, *httptest.ResponseRecor
 func TestHandleBoardGameCreate_OK(t *testing.T) {
 	//Arrange
 	repo := &mockBoardGameRepo{}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	body := []byte(`{
 		"name": "Catan",
@@ -75,7 +75,7 @@ func TestHandleBoardGameCreate_OK(t *testing.T) {
 func TestHandleBoardGameCreate_BadRequestJSON(t *testing.T) {
 	// Arrange
 	repo := &mockBoardGameRepo{}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	//Missing required fields
 	body := []byte(`{
@@ -104,7 +104,7 @@ func TestHandleBoardGameCreate_BadRequestJSON(t *testing.T) {
 func TestHandleGetAllBoardgames_OK(t *testing.T) {
 	// Arrange
 	repo := &mockBoardGameRepo{}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/boardgames", nil)
 	ctx, rec := createTestContext(req)
@@ -156,7 +156,7 @@ func TestHandleGetAllBoardGames_errorRepo(t *testing.T) {
 	repo := &mockBoardGameRepo{
 		getAllError: ErrMockDBFailure,
 	}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/boardgames", nil)
 	ctx, rec := createTestContext(req)
@@ -177,7 +177,7 @@ func TestHandleGetAllBoardGames_errorRepo(t *testing.T) {
 func TestHandleGetBoardGameByID_OK(t *testing.T) {
 	// Arrange
 	repo := &mockBoardGameRepo{}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/boardgames/1", nil)
 	ctx, rec := createTestContext(req)
@@ -223,7 +223,7 @@ func TestHandleGetBoardGameById_errorRepo(t *testing.T) {
 	repo := &mockBoardGameRepo{
 		getByIDError: ErrMockDBFailure,
 	}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/boardgames/1", nil)
 	ctx, rec := createTestContext(req)
@@ -245,7 +245,7 @@ func TestHandleGetBoardGameById_errorRepo(t *testing.T) {
 func TestHandleBoardGameDelete_NoContent(t *testing.T) {
 	// Arrange
 	repo := &mockBoardGameRepo{}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	req := httptest.NewRequest(http.MethodDelete, "/api/boardgames/1", nil)
 	ctx, rec := createTestContext(req)
@@ -270,7 +270,7 @@ func TestHandleBoardGameDelete_NotFound(t *testing.T) {
 	repo := &mockBoardGameRepo{
 		deleteError: ErrNotFound,
 	}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	req := httptest.NewRequest(http.MethodDelete, "/api/boardgames/999", nil)
 	ctx, rec := createTestContext(req)
@@ -295,7 +295,7 @@ func TestHandleBoardGameDelete_InternalServerError(t *testing.T) {
 	repo := &mockBoardGameRepo{
 		deleteError: ErrMockDBFailure,
 	}
-	handler := NewBoardGameHandler(repo)
+	handler := NewBoardGameHandler(repo, nil)
 
 	req := httptest.NewRequest(http.MethodDelete, "/api/boardgames/1", nil)
 	ctx, rec := createTestContext(req)
@@ -358,5 +358,32 @@ func (m *mockBoardGameRepo) Delete(ctx context.Context, id int64) error {
 	if m.deleteError != nil {
 		return m.deleteError
 	}
+	return nil
+}
+
+type mockBoardGameImageRepo struct {
+	createCalled     bool
+	getAllCalled     bool
+	getByIDCalled    bool
+	deleteByIDCalled bool
+}
+
+func (m *mockBoardGameImageRepo) SaveImage(ctx context.Context, image *models.BoardGameImage) error {
+	m.createCalled = true
+	return nil
+}
+
+func (m *mockBoardGameImageRepo) GetAllImagesForBoardGame(ctx context.Context, boardGameId int64, imageType string) ([]*models.BoardGameImage, error) {
+	m.getAllCalled = true
+	return []*models.BoardGameImage{}, nil
+}
+
+func (m *mockBoardGameImageRepo) GetCoverThumbnail(ctx context.Context, boardGameId int64) (*models.BoardGameImage, error) {
+	m.getByIDCalled = true
+	return &models.BoardGameImage{}, nil
+}
+
+func (m *mockBoardGameImageRepo) DeleteImage(ctx context.Context, id int64) error {
+	m.deleteByIDCalled = true
 	return nil
 }

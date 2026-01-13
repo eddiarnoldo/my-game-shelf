@@ -95,3 +95,7 @@ func (m *mockBoardGameHandler) HandleGetBoardGameByID(c *gin.Context) {
 func (m *mockBoardGameHandler) HandleBoardGameDelete(c *gin.Context) {
 	m.handleBoardGameDeleteCalled = true
 }
+
+func (m *mockBoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
+	// Not needed for this test
+}
