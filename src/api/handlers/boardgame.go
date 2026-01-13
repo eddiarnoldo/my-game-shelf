@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/eddiarnoldo/my-game-shelf/src/internal/helpers"
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/models"
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/repository"
 	"github.com/gin-gonic/gin"
@@ -153,8 +154,12 @@ func (h *BoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
 		return
 	}
 
-	// 8. TODO: Generate thumbnail (we'll do this next)
-	thumbnailData := imageData // For now, just use same data
+	// 8. Generate thumbnail
+	thumbnailData, err := helpers.GenerateThumbnail(imageData, file.Header.Get("Content-Type"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate thumbnail"})
+		return
+	}
 
 	// 9. Create image model
 	image := &models.BoardGameImage{
@@ -179,4 +184,30 @@ func (h *BoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
 		"imageId": image.ID,
 	})
 
+}
+
+func (h *BoardGameHandler) HandleGetBoardGameCoverImage(c *gin.Context) {
+	boardGameIDParam := c.Param("id")
+	boardGameID, err := strconv.ParseInt(boardGameIDParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board game ID"})
+		return
+	}
+
+	// 2. Get the cover thumbnail from repository
+	image, err := h.imageRepo.GetCoverThumbnail(c.Request.Context(), boardGameID)
+	if err != nil {
+		// If no cover image exists, return 404
+		c.JSON(http.StatusNotFound, gin.H{"error": "Cover image not found"})
+		return
+	}
+
+	// 3. Set the Content-Type header (crucial!)
+	c.Header("Content-Type", image.ImageMimeType)
+
+	// 4. Optional: Add cache headers for better performance
+	c.Header("Cache-Control", "public, max-age=86400") // Cache for 24 hours
+
+	// 5. Write the thumbnail bytes directly to response
+	c.Data(http.StatusOK, image.ImageMimeType, image.ThumbnailData)
 }

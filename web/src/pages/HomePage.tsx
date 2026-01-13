@@ -6,6 +6,7 @@ interface BoardGame {
   name: string;
   min_players: number;
   max_players: number;
+  coverImageUrl?: string;
 }
 
 export default function HomePage() {
@@ -46,11 +47,12 @@ export default function HomePage() {
         </div>
       ) : (
         // Game grid
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px'
-        }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 250px))',  // Smaller cards
+        gap: '20px',
+        justifyContent: 'start'
+      }}>
           {games.map(game => (
             <BoardGameCard
               key={game.id}
@@ -58,6 +60,7 @@ export default function HomePage() {
               name={game.name}
               minPlayers={game.min_players}
               maxPlayers={game.max_players}
+              coverImageUrl={game.coverImageUrl}
             />
           ))}
         </div>

@@ -96,6 +96,11 @@ func (m *mockBoardGameHandler) HandleBoardGameDelete(c *gin.Context) {
 	m.handleBoardGameDeleteCalled = true
 }
 
+// TODO write tests for this
 func (m *mockBoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
+	// Not needed for this test
+}
+
+func (*mockBoardGameHandler) HandleGetBoardGameCoverImage(c *gin.Context) {
 	// Not needed for this test
 }

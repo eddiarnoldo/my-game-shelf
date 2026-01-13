@@ -4,7 +4,7 @@ services:
     container_name: my-game-shelf-postgres
     environment:
       POSTGRES_USER: ${DB_USER:-mygameshelf}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-CHANGE_ME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-120915le}
       POSTGRES_DB: ${DB_NAME:-my_game_shelf}
     ports:
       - "5432:5432"  # So the Go app can connect

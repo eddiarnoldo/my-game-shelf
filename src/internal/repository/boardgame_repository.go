@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -68,6 +69,8 @@ func (r *BoardGameRepository) GetAll(ctx context.Context) ([]*models.BoardGame, 
 			&boardGame.CreatedAt,
 			&boardGame.UpdatedAt,
 		)
+
+		boardGame.CoverImageUrL = fmt.Sprintf("/api/boardgame/%d/images/cover", boardGame.ID)
 
 		if err != nil {
 			return nil, ErrQueryFailed
