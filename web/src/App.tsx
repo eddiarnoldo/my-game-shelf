@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import BoardGameDetailPage from './pages/BoardGameDetailPage';
 import AddGamePage from './pages/AddGamePage'; 
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="boardgame/:id" element={<BoardGameDetailPage />} />
         <Route path="add" element={<AddGamePage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

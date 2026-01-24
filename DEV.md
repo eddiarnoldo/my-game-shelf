@@ -5,10 +5,10 @@
 `docker-compose -f docker-compose.dev.yml up -d`
 
 - Run your Go app directly on your machine
-`go run ./cmd/api`
+`go run ./cmd/`
 
 - Make changes to code, save, restart (Press Ctrl+C, then run again)
-`go run ./cmd/api`
+`go run ./cmd/`
 
 - When done, stop database
 `docker-compose -f docker-compose.dev.yml down`
@@ -59,3 +59,13 @@ go test ./src/api/handlers/...
 Add `-v` to get more verbose output
 
 `...` is go package wildcard, it means: “Run tests for this package and all subpackages recursively”
+
+
+## How to run the web project
+
+```bash
+cd web
+npm run dev
+```
+
+This will start the vite server
