@@ -161,24 +161,36 @@ func (h *BoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
 		return
 	}
 
-	// 9. Create image model
+	// 9. Get current images to determine display order
+	maxDisplayOrder, err := h.imageRepo.GetMaxDisplayOrder(c.Request.Context(), boardGameID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("No images found for board game: %v", err)})
+		return
+	}
+
+	displayOrder := 0
+	if imageType != "cover" {
+		displayOrder = maxDisplayOrder + 1
+	}
+
+	// 10. Create image model
 	image := &models.BoardGameImage{
 		BoardGameID:   boardGameID,
 		ImageData:     imageData,
 		ImageMimeType: file.Header.Get("Content-Type"),
 		ThumbnailData: thumbnailData,
 		ImageType:     imageType,
-		DisplayOrder:  0, // TODO: Calculate this
+		DisplayOrder:  displayOrder,
 	}
 
-	// 10. Save to database
+	// 11. Save to database
 	err = h.imageRepo.SaveImage(c.Request.Context(), image)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save image"})
 		return
 	}
 
-	// 11. Return success with image ID
+	// 12. Return success with image ID
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Image uploaded successfully",
 		"imageId": image.ID,
@@ -186,7 +198,7 @@ func (h *BoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
 
 }
 
-func (h *BoardGameHandler) HandleGetBoardGameCoverImage(c *gin.Context) {
+func (h *BoardGameHandler) HandleGetBoardGameCoverThumbnailImage(c *gin.Context) {
 	boardGameIDParam := c.Param("id")
 	boardGameID, err := strconv.ParseInt(boardGameIDParam, 10, 64)
 	if err != nil {

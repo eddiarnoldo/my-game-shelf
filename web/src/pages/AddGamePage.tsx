@@ -62,7 +62,7 @@ export default function AddGamePage() {
       }
 
       const newGame = await gameResponse.json();
-      const gameId = newGame.id; // Assuming your API returns the created game with ID
+      const gameId = newGame.id;
 
       // Step 2: Upload cover image if provided
       if (coverImage) {

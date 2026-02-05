@@ -17,6 +17,7 @@ type BoardGameImageRepo interface {
 	GetAllImagesForBoardGame(ctx context.Context, boardGameId int64, imageType string) ([]*models.BoardGameImage, error)
 	GetCoverThumbnail(ctx context.Context, boardGameId int64) (*models.BoardGameImage, error)
 	DeleteImage(ctx context.Context, id int64) error
+	GetMaxDisplayOrder(ctx context.Context, boardGameId int64) (int, error)
 }
 
 func NewBoardGameImageRepository(db *pgxpool.Pool) *BoardGameImageRepository {
@@ -110,4 +111,16 @@ func (r *BoardGameImageRepository) DeleteImage(ctx context.Context, id int64) er
 
 	_, err := r.db.Exec(ctx, query, id)
 	return err
+}
+
+func (r *BoardGameImageRepository) GetMaxDisplayOrder(ctx context.Context, boardGameId int64) (int, error) {
+	query := `SELECT COALESCE(MAX(display_order), 0) FROM board_game_images WHERE board_game_id = $1`
+
+	var maxDisplayOrder int
+	err := r.db.QueryRow(ctx, query, boardGameId).Scan(&maxDisplayOrder)
+	if err != nil {
+		return 0, err
+	}
+
+	return maxDisplayOrder, nil
 }

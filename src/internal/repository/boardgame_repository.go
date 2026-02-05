@@ -70,7 +70,7 @@ func (r *BoardGameRepository) GetAll(ctx context.Context) ([]*models.BoardGame, 
 			&boardGame.UpdatedAt,
 		)
 
-		boardGame.CoverImageUrL = fmt.Sprintf("/api/boardgame/%d/images/cover", boardGame.ID)
+		boardGame.CoverImageUrl = fmt.Sprintf("/api/boardgame/%d/images/coverThumbnail", boardGame.ID)
 
 		if err != nil {
 			return nil, ErrQueryFailed
