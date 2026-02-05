@@ -29,6 +29,7 @@ export default function GameDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     fetch(`/api/boardgames/${id}`)
@@ -91,6 +92,13 @@ export default function GameDetailPage() {
 
   return (
     <div>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { background-color: #333; }
+          50% { background-color: #555; }
+        }
+      `}</style>
+
       {/* Header with back button and delete */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <Link to="/" style={{ color: '#4a9eff', textDecoration: 'none' }}>
@@ -126,18 +134,30 @@ export default function GameDetailPage() {
 
       <div style={{ display: 'flex', gap: '40px', marginTop: '20px' }}>
         {/* Game image */}
-        <div style={{ width: '400px', height: '400px', flexShrink: 0 }}>
+        <div style={{ width: '400px', height: '400px', flexShrink: 0, position: 'relative' }}>
           {coverImage ? (
-            <img
-              src={coverImage.imageUrl}
-              alt={`${game.name} cover`}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: '8px',
-              }}
-            />
+            <>
+              {!imageLoaded && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '8px',
+                  animation: 'pulse 1.5s ease-in-out infinite',
+                }} />
+              )}
+              <img
+                src={coverImage.imageUrl}
+                alt={`${game.name} cover`}
+                onLoad={() => setImageLoaded(true)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '8px',
+                  visibility: imageLoaded ? 'visible' : 'hidden',
+                }}
+              />
+            </>
           ) : (
             <div style={{
               width: '100%',
