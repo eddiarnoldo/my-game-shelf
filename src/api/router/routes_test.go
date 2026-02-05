@@ -104,3 +104,11 @@ func (m *mockBoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
 func (*mockBoardGameHandler) HandleGetBoardGameCoverThumbnailImage(c *gin.Context) {
 
 }
+
+func (*mockBoardGameHandler) HandleGetBoardGameImage(c *gin.Context) {
+
+}
+
+func (*mockBoardGameHandler) HandleGetBoardGameImageThumbnail(c *gin.Context) {
+
+}

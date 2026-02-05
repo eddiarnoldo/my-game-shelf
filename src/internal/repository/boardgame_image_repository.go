@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"fmt"
+
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,10 +16,12 @@ type BoardGameImageRepository struct {
 
 type BoardGameImageRepo interface {
 	SaveImage(ctx context.Context, image *models.BoardGameImage) error
-	GetAllImagesForBoardGame(ctx context.Context, boardGameId int64, imageType string) ([]*models.BoardGameImage, error)
+	GetBoardGameImageDtos(ctx context.Context, boardGameId int64) ([]models.BoardGameImageDto, error)
 	GetCoverThumbnail(ctx context.Context, boardGameId int64) (*models.BoardGameImage, error)
 	DeleteImage(ctx context.Context, id int64) error
 	GetMaxDisplayOrder(ctx context.Context, boardGameId int64) (int, error)
+	GetImageDataById(ctx context.Context, boardGameId int64, imageId int64) (*models.BoardGameImageData, error)
+	GetThumbnailImageDataById(ctx context.Context, boardGameId int64, imageId int64) (*models.BoardGameImageData, error)
 }
 
 func NewBoardGameImageRepository(db *pgxpool.Pool) *BoardGameImageRepository {
@@ -41,39 +45,32 @@ func (r *BoardGameImageRepository) SaveImage(ctx context.Context, image *models.
 	return err
 }
 
-func (r *BoardGameImageRepository) GetAllImagesForBoardGame(ctx context.Context, boardGameId int64, imageType string) ([]*models.BoardGameImage, error) {
-	query := `SELECT id, board_game_id, image_data, image_mime_type, thumbnail_data, image_type, display_order, uploaded_at
-			FROM board_game_images`
-
-	if imageType != "" {
-		query += ` WHERE board_game_id = $1 AND image_type = $2 ORDER BY display_order ASC`
-	} else {
-		query += ` WHERE board_game_id = $1 ORDER BY display_order ASC`
-	}
+// Returns the image DTOs that will be used to load an image
+func (r *BoardGameImageRepository) GetBoardGameImageDtos(ctx context.Context, boardGameId int64) ([]models.BoardGameImageDto, error) {
+	query := `SELECT id, image_type, display_order
+			FROM board_game_images where board_game_id = $1 ORDER BY display_order ASC`
 
 	var rows pgx.Rows
 	var err error
 
-	if imageType != "" {
-		rows, err = r.db.Query(ctx, query, boardGameId, imageType)
-	} else {
-		rows, err = r.db.Query(ctx, query, boardGameId)
-	}
+	rows, err = r.db.Query(ctx, query, boardGameId)
 
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var images []*models.BoardGameImage
+	var images []models.BoardGameImageDto
 	for rows.Next() {
-		var image models.BoardGameImage
-		err := rows.Scan(&image.ID, &image.BoardGameID, &image.ImageData, &image.ImageMimeType,
-			&image.ThumbnailData, &image.ImageType, &image.DisplayOrder, &image.UploadedAt)
+		var image models.BoardGameImageDto
+		err := rows.Scan(&image.ID, &image.ImageType, &image.DisplayOrder)
 		if err != nil {
 			return nil, err
 		}
-		images = append(images, &image)
+
+		image.ImageUrl = "/api/boardgame/" + fmt.Sprint(boardGameId) + "/image/" + fmt.Sprint(image.ID)
+		image.ThumbnailUrl = "/api/boardgame/" + fmt.Sprint(boardGameId) + "/image/" + fmt.Sprint(image.ID) + "/thumbnail"
+		images = append(images, image)
 	}
 
 	// Check for errors from iterating over rows
@@ -123,4 +120,40 @@ func (r *BoardGameImageRepository) GetMaxDisplayOrder(ctx context.Context, board
 	}
 
 	return maxDisplayOrder, nil
+}
+
+func (r *BoardGameImageRepository) GetImageDataById(ctx context.Context, boardGameId int64, imageId int64) (*models.BoardGameImageData, error) {
+	query := `SELECT image_data, image_mime_type
+			FROM board_game_images
+			WHERE board_game_id = $1 AND id = $2`
+
+	var imageData models.BoardGameImageData
+	err := r.db.QueryRow(ctx, query, boardGameId, imageId).Scan(
+		&imageData.Data,
+		&imageData.ImageMimeType,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &imageData, nil
+}
+
+func (r *BoardGameImageRepository) GetThumbnailImageDataById(ctx context.Context, boardGameId int64, imageId int64) (*models.BoardGameImageData, error) {
+	query := `SELECT thumbnail_data, image_mime_type
+			FROM board_game_images
+			WHERE board_game_id = $1 AND id = $2`
+
+	var imageData models.BoardGameImageData
+	err := r.db.QueryRow(ctx, query, boardGameId, imageId).Scan(
+		&imageData.Data,
+		&imageData.ImageMimeType,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &imageData, nil
 }

@@ -69,6 +69,14 @@ func (h *BoardGameHandler) HandleGetBoardGameByID(c *gin.Context) {
 		return
 	}
 
+	imageDtos, err := h.imageRepo.GetBoardGameImageDtos(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve board game images"})
+		return
+	}
+
+	game.BoardGameImages = imageDtos
+
 	c.JSON(http.StatusOK, game)
 }
 
@@ -222,4 +230,64 @@ func (h *BoardGameHandler) HandleGetBoardGameCoverThumbnailImage(c *gin.Context)
 
 	// 5. Write the thumbnail bytes directly to response
 	c.Data(http.StatusOK, image.ImageMimeType, image.ThumbnailData)
+}
+
+func (h *BoardGameHandler) HandleGetBoardGameImage(c *gin.Context) {
+	boardGameIDParam := c.Param("id")
+	imageIDParam := c.Param("imageId")
+
+	boardGameID, err := strconv.ParseInt(boardGameIDParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board game ID"})
+		return
+	}
+
+	imageID, err := strconv.ParseInt(imageIDParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image ID"})
+		return
+	}
+
+	// Fetch the image from the repository
+	boardGameImageData, err := h.imageRepo.GetImageDataById(c.Request.Context(), boardGameID, imageID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
+		return
+	}
+
+	// Set the Content-Type header
+	c.Header("Content-Type", boardGameImageData.ImageMimeType)
+
+	// Write the image data to the response
+	c.Data(http.StatusOK, boardGameImageData.ImageMimeType, boardGameImageData.Data)
+}
+
+func (h *BoardGameHandler) HandleGetBoardGameImageThumbnail(c *gin.Context) {
+	boardGameIDParam := c.Param("id")
+	imageIDParam := c.Param("imageId")
+
+	boardGameID, err := strconv.ParseInt(boardGameIDParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid board game ID"})
+		return
+	}
+
+	imageID, err := strconv.ParseInt(imageIDParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image ID"})
+		return
+	}
+
+	// Fetch the thumbnail image from the repository
+	boardGameImageData, err := h.imageRepo.GetThumbnailImageDataById(c.Request.Context(), boardGameID, imageID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Thumbnail image not found"})
+		return
+	}
+
+	// Set the Content-Type header
+	c.Header("Content-Type", boardGameImageData.ImageMimeType)
+
+	// Write the thumbnail image data to the response
+	c.Data(http.StatusOK, boardGameImageData.ImageMimeType, boardGameImageData.Data)
 }

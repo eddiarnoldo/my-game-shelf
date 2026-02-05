@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
+interface BoardGameImageDto {
+  id: number;
+  imageUrl: string;
+  thumbnailUrl: string;
+  imageType: string;
+  displayOrder: number;
+}
+
 interface BoardGame {
   id: number;
   name: string;
@@ -11,6 +19,7 @@ interface BoardGame {
   description: string;
   created_at: string;
   updated_at: string;
+  boardGameImages: BoardGameImageDto[];
 }
 
 export default function GameDetailPage() {
@@ -78,6 +87,8 @@ export default function GameDetailPage() {
     );
   }
 
+  const coverImage = game.boardGameImages?.find(img => img.imageType === 'cover');
+
   return (
     <div>
       {/* Header with back button and delete */}
@@ -115,18 +126,32 @@ export default function GameDetailPage() {
 
       <div style={{ display: 'flex', gap: '40px', marginTop: '20px' }}>
         {/* Game image */}
-        <div style={{
-          width: '400px',
-          height: '400px',
-          backgroundColor: '#444',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '120px',
-          flexShrink: 0
-        }}>
-          🎲
+        <div style={{ width: '400px', height: '400px', flexShrink: 0 }}>
+          {coverImage ? (
+            <img
+              src={coverImage.imageUrl}
+              alt={`${game.name} cover`}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: '8px',
+              }}
+            />
+          ) : (
+            <div style={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#444',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '120px',
+            }}>
+              🎲
+            </div>
+          )}
         </div>
 
         {/* Game details */}

@@ -28,6 +28,12 @@ type BoardGameImage struct {
 	UploadedAt    time.Time
 }
 
+// Used for both thumnails or full images
+type BoardGameImageData struct {
+	Data          []byte
+	ImageMimeType string
+}
+
 type BoardGameImageDto struct {
 	ID           int64  `json:"id"`
 	ImageUrl     string `json:"imageUrl"`
