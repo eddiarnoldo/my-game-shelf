@@ -25,7 +25,6 @@ func RegisterRoutes(router *gin.Engine, boardGameHandler BoardGameHandlerInterfa
 		//Images
 		api.POST("/boardgame/:id/images", boardGameHandler.HandleUploadBoardGameImage)
 		api.GET("/boardgame/:id/images/coverThumbnail", boardGameHandler.HandleGetBoardGameCoverThumbnailImage)
-		//TODO add image id routes
 		api.GET("/boardgame/:id/image/:imageId", boardGameHandler.HandleGetBoardGameImage)
 		api.GET("/boardgame/:id/image/:imageId/thumbnail", boardGameHandler.HandleGetBoardGameImageThumbnail)
 	}

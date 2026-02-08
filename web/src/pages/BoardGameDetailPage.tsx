@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import ImageGallery from '../components/ImageGallery';
 
 interface BoardGameImageDto {
   id: number;
@@ -30,6 +31,7 @@ export default function GameDetailPage() {
   const [error, setError] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [gameplayImages, setGameplayImages] = useState<BoardGameImageDto[]>([]);
 
   useEffect(() => {
     fetch(`/api/boardgames/${id}`)
@@ -41,6 +43,10 @@ export default function GameDetailPage() {
       })
       .then(data => {
         setGame(data);
+        const gameplay = data.boardGameImages
+          ?.filter(img => img.imageType === 'gameplay')
+          .sort((a, b) => a.displayOrder - b.displayOrder) || [];
+        setGameplayImages(gameplay);
         setLoading(false);
       })
       .catch(err => {
@@ -209,6 +215,27 @@ export default function GameDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Gameplay Images Gallery */}
+      {game && (
+        <div style={{ marginTop: '40px' }}>
+          <h2 style={{
+            color: 'white',
+            marginBottom: '20px',
+            fontSize: '24px',
+            fontWeight: 'bold'
+          }}>
+            Gameplay Images
+          </h2>
+          <ImageGallery
+            boardGameId={game.id}
+            images={gameplayImages}
+            onImageUploaded={(newImage) => {
+              setGameplayImages(prev => [...prev, newImage]);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

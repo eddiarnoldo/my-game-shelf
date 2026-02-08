@@ -2,7 +2,7 @@
 # How to run the project in dev mode
 
 - Start ONLY the database
-`docker-compose -f docker-compose.dev.yml up -d`
+`docker compose -f docker-compose.dev.yml up -d`
 
 - Run your Go app directly on your machine
 `go run ./cmd/`
