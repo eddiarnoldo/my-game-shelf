@@ -23,7 +23,7 @@ interface BoardGame {
   boardGameImages: BoardGameImageDto[];
 }
 
-export default function GameDetailPage() {
+export default function BoardGameDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [game, setGame] = useState<BoardGame | null>(null);
@@ -44,8 +44,8 @@ export default function GameDetailPage() {
       .then(data => {
         setGame(data);
         const gameplay = data.boardGameImages
-          ?.filter(img => img.imageType === 'gameplay')
-          .sort((a, b) => a.displayOrder - b.displayOrder) || [];
+          ?.filter((img: BoardGameImageDto) => img.imageType === 'gameplay')
+          .sort((a: BoardGameImageDto, b: BoardGameImageDto) => a.displayOrder - b.displayOrder) || [];
         setGameplayImages(gameplay);
         setLoading(false);
       })
@@ -72,7 +72,6 @@ export default function GameDetailPage() {
         throw new Error('Failed to delete game');
       }
 
-      // Success! Navigate back to home
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -82,14 +81,14 @@ export default function GameDetailPage() {
   };
 
   if (loading) {
-    return <div style={{ color: 'white' }}>Loading game...</div>;
+    return <div className="text-white">Loading game...</div>;
   }
 
   if (error || !game) {
     return (
-      <div style={{ color: 'white' }}>
+      <div>
         <h1>Game not found</h1>
-        <Link to="/" style={{ color: '#4a9eff' }}>← Back to games</Link>
+        <Link to="/" className="text-[#4a9eff] no-underline">← Back to games</Link>
       </div>
     );
   }
@@ -97,134 +96,88 @@ export default function GameDetailPage() {
   const coverImage = game.boardGameImages?.find(img => img.imageType === 'cover');
 
   return (
-    <div>
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { background-color: #333; }
-          50% { background-color: #555; }
-        }
-      `}</style>
-
-      {/* Header with back button and delete */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <Link to="/" style={{ color: '#4a9eff', textDecoration: 'none' }}>
+    <div className="h-screen overflow-y-auto">
+      <div className="flex justify-between items-center mb-5">
+        <Link to="/" className="text-[#4a9eff] no-underline">
           ← Back to games
         </Link>
 
-    <button
-    onClick={handleDelete}
-    disabled={deleting}
-    style={{
-        backgroundColor: deleting ? '#444' : '#ff4444',
-        border: 'none',
-        color: 'white',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        cursor: deleting ? 'not-allowed' : 'pointer',
-        padding: '8px 12px',
-        borderRadius: '8px',
-        transition: 'transform 0.2s, background-color 0.2s',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '40px',
-        height: '40px'
-    }}
-    onMouseEnter={(e) => !deleting && (e.currentTarget.style.transform = 'scale(1.1)')}
-    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-    title="Delete game"
-    >
-    ✕
-    </button>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className={`border-none text-white text-2xl font-bold cursor-pointer px-3 py-2 rounded-lg transition-all duration-200 flex items-center justify-center w-10 h-10 ${
+            deleting 
+              ? 'bg-[#444] cursor-not-allowed' 
+              : 'bg-[#ff4444] hover:scale-110'
+          }`}
+          title="Delete game"
+        >
+          ✕
+        </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '40px', marginTop: '20px' }}>
-        {/* Game image */}
-        <div style={{ width: '400px', height: '400px', flexShrink: 0, position: 'relative' }}>
+      <div className="flex gap-10 mt-5">
+        <div className="w-[400px] h-[400px] flex-shrink-0 relative">
           {coverImage ? (
             <>
               {!imageLoaded && (
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '8px',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                }} />
+                <div className="absolute inset-0 rounded-lg animate-pulse bg-[#333]" />
               )}
               <img
                 src={coverImage.imageUrl}
                 alt={`${game.name} cover`}
                 onLoad={() => setImageLoaded(true)}
+                className="w-full h-full object-cover rounded-lg"
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '8px',
                   visibility: imageLoaded ? 'visible' : 'hidden',
                 }}
               />
             </>
           ) : (
-            <div style={{
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#444',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '120px',
-            }}>
+            <div className="w-full h-full bg-[#444] rounded-lg flex items-center justify-center text-[120px]">
               🎲
             </div>
           )}
         </div>
 
-        {/* Game details */}
-        <div style={{ flex: 1 }}>
-          <h1 style={{ color: 'white', marginBottom: '20px', fontSize: '36px' }}>
+        <div className="flex-1">
+          <h1 className="text-white mb-5 text-4xl">
             {game.name}
           </h1>
           
-          <div style={{ color: '#ccc', fontSize: '16px', lineHeight: '1.8' }}>
-            <p style={{ marginBottom: '12px' }}>
-              <strong style={{ color: 'white' }}>Players:</strong> {game.min_players}-{game.max_players || game.min_players}
+          <div className="text-[#ccc] text-base leading-[1.8]">
+            <p className="mb-3">
+              <strong className="text-white">Players:</strong> {game.min_players}-{game.max_players || game.min_players}
             </p>
             
-            <p style={{ marginBottom: '12px' }}>
-              <strong style={{ color: 'white' }}>Play Time:</strong> {game.play_time} minutes
+            <p className="mb-3">
+              <strong className="text-white">Play Time:</strong> {game.play_time} minutes
             </p>
             
-            <p style={{ marginBottom: '12px' }}>
-              <strong style={{ color: 'white' }}>Minimum Age:</strong> {game.min_age}+
+            <p className="mb-3">
+              <strong className="text-white">Minimum Age:</strong> {game.min_age}+
             </p>
             
-            <p style={{ marginBottom: '20px' }}>
-              <strong style={{ color: 'white' }}>Description:</strong>
+            <p className="mb-5">
+              <strong className="text-white">Description:</strong>
             </p>
-            <p style={{ color: '#aaa', lineHeight: '1.6', marginBottom: '20px' }}>
+            <p className="text-[#aaa] leading-[1.6] mb-5">
               {game.description}
             </p>
 
-            <p style={{ fontSize: '14px', color: '#666' }}>
+            <p className="text-sm text-[#666]">
               <strong>Added:</strong> {new Date(game.created_at).toLocaleDateString()}
             </p>
-            <p style={{ fontSize: '14px', color: '#666' }}>
+            <p className="text-sm text-[#666]">
               <strong>Last Updated:</strong> {new Date(game.updated_at).toLocaleDateString()}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Gameplay Images Gallery */}
       {game && (
-        <div style={{ marginTop: '40px' }}>
-          <h2 style={{
-            color: 'white',
-            marginBottom: '20px',
-            fontSize: '24px',
-            fontWeight: 'bold'
-          }}>
+        <div className="mt-10">
+          <h2 className="text-white mb-5 text-2xl font-bold">
             Gameplay Images
           </h2>
           <ImageGallery

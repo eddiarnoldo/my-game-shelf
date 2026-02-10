@@ -31,39 +31,16 @@ export default function Lightbox({ images, initialIndex, onClose }: LightboxProp
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-      }}
+      className="fixed inset-0 bg-black/95 z-[1000] flex items-center justify-center p-5"
       onClick={onClose}
     >
-      {/* Close button */}
       <button
         onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: '20px',
-          right: '20px',
-          backgroundColor: '#ff4444',
-          border: 'none',
-          color: 'white',
-          fontSize: '24px',
-          cursor: 'pointer',
-          padding: '8px 12px',
-          borderRadius: '8px',
-          zIndex: 1001,
-        }}
+        className="absolute top-5 right-5 bg-[#ff4444] border-none text-white text-2xl cursor-pointer px-3 py-2 rounded-lg z-[1001]"
       >
         ✕
       </button>
 
-      {/* Previous button */}
       {currentIndex > 0 && (
         <button
           onClick={(e) => {
@@ -71,50 +48,28 @@ export default function Lightbox({ images, initialIndex, onClose }: LightboxProp
             setCurrentIndex(prev => prev - 1);
             setImageLoaded(false);
           }}
-          style={{
-            position: 'absolute',
-            left: '20px',
-            backgroundColor: '#4a9eff',
-            border: 'none',
-            color: 'white',
-            fontSize: '24px',
-            cursor: 'pointer',
-            padding: '12px 16px',
-            borderRadius: '8px',
-            zIndex: 1001,
-          }}
+          className="absolute left-5 bg-[#4a9eff] border-none text-white text-2xl cursor-pointer px-4 py-3 rounded-lg z-[1001]"
         >
           ←
         </button>
       )}
 
-      {/* Image container */}
-      <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+      <div onClick={(e) => e.stopPropagation()} className="relative max-w-[90vw] max-h-[90vh]">
         {!imageLoaded && (
-          <div style={{
-            width: '400px',
-            height: '400px',
-            backgroundColor: '#333',
-            borderRadius: '8px',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }} />
+          <div className="w-[400px] h-[400px] bg-[#333] rounded-lg animate-pulse" />
         )}
         <img
           src={currentImage.imageUrl}
           alt={`Image ${currentIndex + 1}`}
           onLoad={() => setImageLoaded(true)}
+          className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
           style={{
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            objectFit: 'contain',
-            borderRadius: '8px',
             visibility: imageLoaded ? 'visible' : 'hidden',
             position: imageLoaded ? 'relative' : 'absolute',
           }}
         />
       </div>
 
-      {/* Next button */}
       {currentIndex < images.length - 1 && (
         <button
           onClick={(e) => {
@@ -122,18 +77,7 @@ export default function Lightbox({ images, initialIndex, onClose }: LightboxProp
             setCurrentIndex(prev => prev + 1);
             setImageLoaded(false);
           }}
-          style={{
-            position: 'absolute',
-            right: '20px',
-            backgroundColor: '#4a9eff',
-            border: 'none',
-            color: 'white',
-            fontSize: '24px',
-            cursor: 'pointer',
-            padding: '12px 16px',
-            borderRadius: '8px',
-            zIndex: 1001,
-          }}
+          className="absolute right-5 bg-[#4a9eff] border-none text-white text-2xl cursor-pointer px-4 py-3 rounded-lg z-[1001]"
         >
           →
         </button>

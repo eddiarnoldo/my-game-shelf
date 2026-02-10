@@ -2,65 +2,37 @@ import { Outlet, NavLink } from 'react-router-dom';
 
 export default function Layout() {
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw' }}>
-      {/* Sidebar */}
-      <aside style={{ 
-        width: '250px', 
-        backgroundColor: '#2d2d2d', 
-        color: 'white',
-        padding: '20px',
-        flexShrink: 0,
-        height: '100vh',
-        overflowY: 'auto'
-      }}>
-        <h2 style={{ marginBottom: '30px' }}>🎲 My Game Shelf</h2>
+    <div className="flex h-screen w-screen">
+      <aside className="w-[250px] bg-[#2d2d2d] text-white p-5 flex-shrink-0 h-screen overflow-y-auto">
+        <h2 className="mb-[30px]">🎲 My Game Shelf</h2>
         
         <nav>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ marginBottom: '8px' }}>
+          <ul className="list-none p-0">
+            <li className="mb-2">
               <NavLink
                 to="/"
-                style={({ isActive }) => ({
-                  color: 'white',
-                  textDecoration: 'none',
-                  display: 'block',
-                  padding: '10px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: isActive ? '#444' : 'transparent',
-                  transition: 'background-color 0.2s'
-                })}
+                className={({ isActive }) => 
+                  `text-white no-underline block px-3 py-2.5 rounded-md transition-colors duration-200 hover:bg-[#3d3d3d] ${isActive ? 'bg-[#444]' : 'bg-transparent'}`
+                }
               >
                 📚 Board Games
               </NavLink>
             </li>
-            <li style={{ marginBottom: '8px' }}>
-                <NavLink
+            <li className="mb-2">
+              <NavLink
                 to="/add"
-                style={({ isActive }) => ({
-                    color: 'white',
-                    textDecoration: 'none',
-                    display: 'block',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: isActive ? '#444' : 'transparent',
-                    transition: 'background-color 0.2s'
-                })}
-                >
+                className={({ isActive }) => 
+                  `text-white no-underline block px-3 py-2.5 rounded-md transition-colors duration-200 hover:bg-[#3d3d3d] ${isActive ? 'bg-[#444]' : 'bg-transparent'}`
+                }
+              >
                 ➕ Add Game
-                </NavLink>
-             </li>
+              </NavLink>
+            </li>
           </ul>
         </nav>
       </aside>
 
-      {/* Main content area */}
-      <main style={{ 
-        flex: 1,
-        height: '100vh',
-        padding: '40px',
-        overflowY: 'auto',
-        backgroundColor: '#1a1a1a'
-      }}>
+      <main className="flex-1 h-screen p-10 overflow-y-auto bg-[#1a1a1a]">
         <Outlet />
       </main>
     </div>

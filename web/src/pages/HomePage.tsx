@@ -27,32 +27,21 @@ export default function HomePage() {
   }, []);
 
   if (loading) {
-    return <div style={{ color: 'white' }}>Loading games...</div>;
+    return <div className="text-white">Loading games...</div>;
   }
 
   return (
-    <div>
-      <h1 style={{ marginBottom: '30px', color: 'white' }}>Board Games</h1>
+    <div className="h-screen overflow-y-auto">
+      <h1 className="mb-[30px] text-white">Board Games</h1>
       
       {games.length === 0 ? (
-        // Empty state
-        <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          color: '#999'
-        }}>
-          <div style={{ fontSize: '80px', marginBottom: '20px' }}>🎲</div>
-          <h2 style={{ color: '#ccc', marginBottom: '10px' }}>No games yet</h2>
+        <div className="text-center py-15 px-5 text-[#999]">
+          <div className="text-[80px] mb-5">🎲</div>
+          <h2 className="text-[#ccc] mb-2.5">No games yet</h2>
           <p>Start building your collection by adding your first board game!</p>
         </div>
       ) : (
-        // Game grid
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 250px))',  // Smaller cards
-        gap: '20px',
-        justifyContent: 'start'
-      }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,250px))] gap-5 justify-start">
           {games.map(game => (
             <BoardGameCard
               key={game.id}

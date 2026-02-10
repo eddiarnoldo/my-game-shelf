@@ -43,7 +43,6 @@ export default function ImageGallery({ boardGameId, images, onImageUploaded }: I
 
       const result = await response.json();
 
-      // Construct new image DTO with returned imageId
       const newImage: BoardGameImageDto = {
         id: result.imageId,
         imageUrl: `/api/boardgame/${boardGameId}/image/${result.imageId}`,
@@ -53,7 +52,7 @@ export default function ImageGallery({ boardGameId, images, onImageUploaded }: I
       };
 
       onImageUploaded(newImage);
-    } catch (err) {
+    } catch {
       setUploadError('Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
@@ -68,66 +67,33 @@ export default function ImageGallery({ boardGameId, images, onImageUploaded }: I
   return (
     <div>
       {uploadError && (
-        <div style={{
-          backgroundColor: '#ff4444',
-          color: 'white',
-          padding: '12px',
-          borderRadius: '6px',
-          marginBottom: '20px'
-        }}>
+        <div className="bg-[#ff4444] text-white p-3 rounded-md mb-5">
           {uploadError}
         </div>
       )}
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-        gap: '20px',
-      }}>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-5">
         {images.map((image, index) => (
           <div
             key={image.id}
             onClick={() => openLightbox(index)}
-            style={{
-              position: 'relative',
-              width: '100%',
-              aspectRatio: '1',
-              cursor: 'pointer',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              transition: 'transform 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
+            className="relative w-full aspect-square cursor-pointer rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105"
           >
             {!imageLoadStates[image.id] && (
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: '8px',
-                animation: 'pulse 1.5s ease-in-out infinite',
-                backgroundColor: '#333',
-              }} />
+              <div className="absolute inset-0 rounded-lg animate-pulse bg-[#333]" />
             )}
             <img
               src={image.thumbnailUrl}
               alt={`Gameplay image ${index + 1}`}
               onLoad={() => setImageLoadStates(prev => ({ ...prev, [image.id]: true }))}
+              className="w-full h-full object-cover"
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
                 visibility: imageLoadStates[image.id] ? 'visible' : 'hidden',
               }}
             />
           </div>
         ))}
 
-        {/* Upload button */}
         <ImageUploadButton
           onImageSelected={handleImageSelected}
           disabled={uploading}
