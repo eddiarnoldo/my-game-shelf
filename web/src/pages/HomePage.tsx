@@ -27,21 +27,23 @@ export default function HomePage() {
   }, []);
 
   if (loading) {
-    return <div className="text-white">Loading games...</div>;
+    return <div className="text-white text-lg md:text-xl">Loading games...</div>;
   }
 
   return (
     <div className="h-screen overflow-y-auto">
-      <h1 className="mb-[30px] text-white">Board Games</h1>
-      
+      <h1 className="mb-4 md:mb-6 lg:mb-8 text-white text-2xl md:text-3xl lg:text-4xl font-bold">
+        Board Games
+      </h1>
+
       {games.length === 0 ? (
-        <div className="text-center py-15 px-5 text-[#999]">
-          <div className="text-[80px] mb-5">🎲</div>
-          <h2 className="text-[#ccc] mb-2.5">No games yet</h2>
-          <p>Start building your collection by adding your first board game!</p>
+        <div className="text-center py-10 md:py-15 px-4 text-[#999]">
+          <div className="text-6xl md:text-7xl lg:text-8xl mb-4 md:mb-5">🎲</div>
+          <h2 className="text-[#ccc] mb-2 text-lg md:text-xl lg:text-2xl">No games yet</h2>
+          <p className="text-sm md:text-base">Start building your collection by adding your first board game!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,250px))] gap-5 justify-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
           {games.map(game => (
             <BoardGameCard
               key={game.id}

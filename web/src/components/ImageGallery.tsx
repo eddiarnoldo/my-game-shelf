@@ -67,17 +67,17 @@ export default function ImageGallery({ boardGameId, images, onImageUploaded }: I
   return (
     <div>
       {uploadError && (
-        <div className="bg-[#ff4444] text-white p-3 rounded-md mb-5">
+        <div className="bg-[#ff4444] text-white p-3 md:p-4 rounded-md mb-4 md:mb-5 text-sm md:text-base">
           {uploadError}
         </div>
       )}
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         {images.map((image, index) => (
           <div
             key={image.id}
             onClick={() => openLightbox(index)}
-            className="relative w-full aspect-square cursor-pointer rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105"
+            className="relative w-full aspect-square cursor-pointer rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 active:scale-95"
           >
             {!imageLoadStates[image.id] && (
               <div className="absolute inset-0 rounded-lg animate-pulse bg-[#333]" />

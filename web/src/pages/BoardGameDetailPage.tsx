@@ -81,14 +81,14 @@ export default function BoardGameDetailPage() {
   };
 
   if (loading) {
-    return <div className="text-white">Loading game...</div>;
+    return <div className="text-white text-lg md:text-xl">Loading game...</div>;
   }
 
   if (error || !game) {
     return (
-      <div>
-        <h1>Game not found</h1>
-        <Link to="/" className="text-[#4a9eff] no-underline">← Back to games</Link>
+      <div className="p-4">
+        <h1 className="text-xl md:text-2xl mb-4">Game not found</h1>
+        <Link to="/" className="text-[#4a9eff] no-underline text-base md:text-lg">← Back to games</Link>
       </div>
     );
   }
@@ -96,19 +96,19 @@ export default function BoardGameDetailPage() {
   const coverImage = game.boardGameImages?.find(img => img.imageType === 'cover');
 
   return (
-    <div className="h-screen overflow-y-auto">
-      <div className="flex justify-between items-center mb-5">
-        <Link to="/" className="text-[#4a9eff] no-underline">
+    <div className="h-screen overflow-y-auto pb-20 md:pb-0">
+      <div className="flex justify-between items-center mb-4 md:mb-5">
+        <Link to="/" className="text-[#4a9eff] no-underline text-base md:text-lg">
           ← Back to games
         </Link>
 
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className={`border-none text-white text-2xl font-bold cursor-pointer px-3 py-2 rounded-lg transition-all duration-200 flex items-center justify-center w-10 h-10 ${
-            deleting 
-              ? 'bg-[#444] cursor-not-allowed' 
-              : 'bg-[#ff4444] hover:scale-110'
+          className={`border-none text-white text-xl md:text-2xl font-bold cursor-pointer px-3 py-2 rounded-lg transition-all duration-200 flex items-center justify-center min-w-[44px] min-h-[44px] ${
+            deleting
+              ? 'bg-[#444] cursor-not-allowed'
+              : 'bg-[#ff4444] hover:scale-110 active:scale-95'
           }`}
           title="Delete game"
         >
@@ -116,59 +116,64 @@ export default function BoardGameDetailPage() {
         </button>
       </div>
 
-      <div className="flex gap-10 mt-5">
-        <div className="w-[400px] h-[400px] flex-shrink-0 relative">
-          {coverImage ? (
-            <>
-              {!imageLoaded && (
-                <div className="absolute inset-0 rounded-lg animate-pulse bg-[#333]" />
-              )}
-              <img
-                src={coverImage.imageUrl}
-                alt={`${game.name} cover`}
-                onLoad={() => setImageLoaded(true)}
-                className="w-full h-full object-cover rounded-lg"
-                style={{
-                  visibility: imageLoaded ? 'visible' : 'hidden',
-                }}
-              />
-            </>
-          ) : (
-            <div className="w-full h-full bg-[#444] rounded-lg flex items-center justify-center text-[120px]">
-              🎲
-            </div>
-          )}
+      {/* Main content - stack on mobile, side-by-side on desktop */}
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 mt-4 md:mt-5">
+        {/* Cover image */}
+        <div className="w-full md:w-[350px] lg:w-[400px] md:flex-shrink-0 relative">
+          <div className="w-full aspect-square relative">
+            {coverImage ? (
+              <>
+                {!imageLoaded && (
+                  <div className="absolute inset-0 rounded-lg animate-pulse bg-[#333]" />
+                )}
+                <img
+                  src={coverImage.imageUrl}
+                  alt={`${game.name} cover`}
+                  onLoad={() => setImageLoaded(true)}
+                  className="w-full h-full object-cover rounded-lg"
+                  style={{
+                    visibility: imageLoaded ? 'visible' : 'hidden',
+                  }}
+                />
+              </>
+            ) : (
+              <div className="w-full h-full bg-[#444] rounded-lg flex items-center justify-center text-7xl md:text-8xl lg:text-[120px]">
+                🎲
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Game details */}
         <div className="flex-1">
-          <h1 className="text-white mb-5 text-4xl">
+          <h1 className="text-white mb-4 md:mb-5 text-2xl md:text-3xl lg:text-4xl font-bold">
             {game.name}
           </h1>
-          
-          <div className="text-[#ccc] text-base leading-[1.8]">
-            <p className="mb-3">
+
+          <div className="text-[#ccc] text-sm md:text-base leading-relaxed">
+            <p className="mb-2 md:mb-3">
               <strong className="text-white">Players:</strong> {game.min_players}-{game.max_players || game.min_players}
             </p>
-            
-            <p className="mb-3">
+
+            <p className="mb-2 md:mb-3">
               <strong className="text-white">Play Time:</strong> {game.play_time} minutes
             </p>
-            
-            <p className="mb-3">
+
+            <p className="mb-2 md:mb-3">
               <strong className="text-white">Minimum Age:</strong> {game.min_age}+
             </p>
-            
-            <p className="mb-5">
+
+            <p className="mb-3 md:mb-4">
               <strong className="text-white">Description:</strong>
             </p>
-            <p className="text-[#aaa] leading-[1.6] mb-5">
+            <p className="text-[#aaa] leading-relaxed mb-4 md:mb-5 text-sm md:text-base">
               {game.description}
             </p>
 
-            <p className="text-sm text-[#666]">
+            <p className="text-xs md:text-sm text-[#666]">
               <strong>Added:</strong> {new Date(game.created_at).toLocaleDateString()}
             </p>
-            <p className="text-sm text-[#666]">
+            <p className="text-xs md:text-sm text-[#666]">
               <strong>Last Updated:</strong> {new Date(game.updated_at).toLocaleDateString()}
             </p>
           </div>
@@ -176,8 +181,8 @@ export default function BoardGameDetailPage() {
       </div>
 
       {game && (
-        <div className="mt-10">
-          <h2 className="text-white mb-5 text-2xl font-bold">
+        <div className="mt-8 md:mt-10">
+          <h2 className="text-white mb-4 md:mb-5 text-xl md:text-2xl font-bold">
             Gameplay Images
           </h2>
           <ImageGallery
