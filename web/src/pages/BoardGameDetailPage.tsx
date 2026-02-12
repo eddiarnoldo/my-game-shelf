@@ -96,7 +96,7 @@ export default function BoardGameDetailPage() {
   const coverImage = game.boardGameImages?.find(img => img.imageType === 'cover');
 
   return (
-    <div className="h-screen overflow-y-auto pb-20 md:pb-0">
+    <div className="pb-20 md:pb-0">
       <div className="flex justify-between items-center mb-4 md:mb-5">
         <Link to="/" className="text-[#4a9eff] no-underline text-base md:text-lg">
           ← Back to games
