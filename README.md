@@ -102,7 +102,7 @@ my-game-shelf/
 
 3. **Start the database**
 ```bash
-   docker-compose -f docker-compose.dev.yml up -d
+   docker compose -f docker-compose.dev.yml up -d
 ```
 
 4. **Run the backend**

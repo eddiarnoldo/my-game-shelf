@@ -98,7 +98,7 @@ export default function BoardGameDetailPage() {
   return (
     <div className="pb-20 md:pb-0">
       <div className="flex justify-between items-center mb-4 md:mb-5">
-        <Link to="/" className="text-[#4a9eff] no-underline text-base md:text-lg">
+        <Link to="/" className="text-[#4a9eff] no-underline text-base md:text-lg pl-14 md:pl-0">
           ← Back to games
         </Link>
 

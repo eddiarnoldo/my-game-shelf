@@ -32,7 +32,7 @@ export default function HomePage() {
 
   return (
     <div className="h-screen overflow-y-auto">
-      <h1 className="mb-4 md:mb-6 lg:mb-8 text-white text-2xl md:text-3xl lg:text-4xl font-bold">
+      <h1 className="mb-4 md:mb-6 lg:mb-8 text-white text-2xl md:text-3xl lg:text-4xl font-bold pl-14 md:pl-0">
         Board Games
       </h1>
 

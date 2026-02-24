@@ -72,12 +72,12 @@ export default function ImageGallery({ boardGameId, images, onImageUploaded }: I
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+      <div className="flex flex-wrap gap-3">
         {images.map((image, index) => (
           <div
             key={image.id}
             onClick={() => openLightbox(index)}
-            className="relative w-full aspect-square cursor-pointer rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 active:scale-95"
+            className="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 active:scale-95"
           >
             {!imageLoadStates[image.id] && (
               <div className="absolute inset-0 rounded-lg animate-pulse bg-[#333]" />
@@ -94,10 +94,12 @@ export default function ImageGallery({ boardGameId, images, onImageUploaded }: I
           </div>
         ))}
 
-        <ImageUploadButton
-          onImageSelected={handleImageSelected}
-          disabled={uploading}
-        />
+        <div className="w-36 sm:w-44 flex-shrink-0">
+          <ImageUploadButton
+            onImageSelected={handleImageSelected}
+            disabled={uploading}
+          />
+        </div>
       </div>
 
       {lightboxOpen && (
