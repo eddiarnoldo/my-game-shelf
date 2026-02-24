@@ -92,7 +92,7 @@ export default function AddGamePage() {
 
   return (
     <div className="h-screen overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
-      <Link to="/" className="text-[#4a9eff] no-underline mb-4 md:mb-5 inline-block text-base md:text-lg">
+      <Link to="/" className="text-[#4a9eff] no-underline mb-4 md:mb-5 inline-block text-base md:text-lg pl-14 md:pl-0">
         ← Back to games
       </Link>
 
