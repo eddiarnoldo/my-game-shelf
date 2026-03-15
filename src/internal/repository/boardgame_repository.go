@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,6 +21,7 @@ type BoardGameRepo interface {
 	GetAll(ctx context.Context) ([]*models.BoardGame, error)
 	GetByID(ctx context.Context, id int64) (*models.BoardGame, error)
 	Delete(ctx context.Context, id int64) error
+	Update(ctx context.Context, game *models.BoardGame) error
 }
 
 func NewBoardGameRepository(db *pgxpool.Pool) *BoardGameRepository {
@@ -106,11 +110,27 @@ func (r *BoardGameRepository) GetByID(ctx context.Context, id int64) (*models.Bo
 	return &game, nil
 }
 
+func (r *BoardGameRepository) Update(ctx context.Context, game *models.BoardGame) error {
+	query := `UPDATE board_games
+	          SET name=$1, min_players=$2, max_players=$3,
+	              play_time=$4, min_age=$5, description=$6, updated_at=NOW()
+	          WHERE id=$7 RETURNING updated_at`
+	err := r.db.QueryRow(ctx, query,
+		game.Name, game.MinPlayers, game.MaxPlayers,
+		game.PlayTime, game.MinAge, game.Description, game.ID,
+	).Scan(&game.UpdatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrBoardGameNotFound
+	}
+	return err
+}
+
 func (r *BoardGameRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM board_games WHERE id = $1`
 
 	commandTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
+		log.Printf(err.Error())
 		return ErrQueryFailed
 	}
 

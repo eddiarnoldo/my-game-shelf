@@ -47,6 +47,46 @@ func TestRegisterRoutes(t *testing.T) {
 				return m.handleBoardGameDeleteCalled
 			},
 		},
+		{
+			name:   "PUT /api/boardgames/:id calls HandleBoardGameUpdate",
+			method: http.MethodPut,
+			path:   "/api/boardgames/1",
+			checkCalled: func(m *mockBoardGameHandler) bool {
+				return m.handleBoardGameUpdateCalled
+			},
+		},
+		{
+			name:   "POST /api/boardgame/:id/images calls HandleUploadBoardGameImage",
+			method: http.MethodPost,
+			path:   "/api/boardgame/1/images",
+			checkCalled: func(m *mockBoardGameHandler) bool {
+				return m.handleUploadBoardGameImageCalled
+			},
+		},
+		{
+			name:   "GET /api/boardgame/:id/images/coverThumbnail calls HandleGetBoardGameCoverThumbnailImage",
+			method: http.MethodGet,
+			path:   "/api/boardgame/1/images/coverThumbnail",
+			checkCalled: func(m *mockBoardGameHandler) bool {
+				return m.handleGetBoardGameCoverThumbnailImageCalled
+			},
+		},
+		{
+			name:   "GET /api/boardgame/:id/image/:imageId calls HandleGetBoardGameImage",
+			method: http.MethodGet,
+			path:   "/api/boardgame/1/image/2",
+			checkCalled: func(m *mockBoardGameHandler) bool {
+				return m.handleGetBoardGameImageCalled
+			},
+		},
+		{
+			name:   "GET /api/boardgame/:id/image/:imageId/thumbnail calls HandleGetBoardGameImageThumbnail",
+			method: http.MethodGet,
+			path:   "/api/boardgame/1/image/2/thumbnail",
+			checkCalled: func(m *mockBoardGameHandler) bool {
+				return m.handleGetBoardGameImageThumbnailCalled
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -76,10 +116,15 @@ func TestRegisterRoutes(t *testing.T) {
 }
 
 type mockBoardGameHandler struct {
-	handleBoardGameCreateCalled  bool
-	handleGetBoardGamesCalled    bool
-	handleGetBoardGameByIDCalled bool
-	handleBoardGameDeleteCalled  bool
+	handleBoardGameCreateCalled                bool
+	handleGetBoardGamesCalled                  bool
+	handleGetBoardGameByIDCalled               bool
+	handleBoardGameDeleteCalled                bool
+	handleBoardGameUpdateCalled                bool
+	handleUploadBoardGameImageCalled           bool
+	handleGetBoardGameCoverThumbnailImageCalled bool
+	handleGetBoardGameImageCalled              bool
+	handleGetBoardGameImageThumbnailCalled     bool
 }
 
 func (m *mockBoardGameHandler) HandleBoardGameCreate(c *gin.Context) {
@@ -91,24 +136,21 @@ func (m *mockBoardGameHandler) HandleGetBoardGames(c *gin.Context) {
 func (m *mockBoardGameHandler) HandleGetBoardGameByID(c *gin.Context) {
 	m.handleGetBoardGameByIDCalled = true
 }
-
 func (m *mockBoardGameHandler) HandleBoardGameDelete(c *gin.Context) {
 	m.handleBoardGameDeleteCalled = true
 }
-
-// TODO write tests for this
+func (m *mockBoardGameHandler) HandleBoardGameUpdate(c *gin.Context) {
+	m.handleBoardGameUpdateCalled = true
+}
 func (m *mockBoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
-
+	m.handleUploadBoardGameImageCalled = true
 }
-
-func (*mockBoardGameHandler) HandleGetBoardGameCoverThumbnailImage(c *gin.Context) {
-
+func (m *mockBoardGameHandler) HandleGetBoardGameCoverThumbnailImage(c *gin.Context) {
+	m.handleGetBoardGameCoverThumbnailImageCalled = true
 }
-
-func (*mockBoardGameHandler) HandleGetBoardGameImage(c *gin.Context) {
-
+func (m *mockBoardGameHandler) HandleGetBoardGameImage(c *gin.Context) {
+	m.handleGetBoardGameImageCalled = true
 }
-
-func (*mockBoardGameHandler) HandleGetBoardGameImageThumbnail(c *gin.Context) {
-
+func (m *mockBoardGameHandler) HandleGetBoardGameImageThumbnail(c *gin.Context) {
+	m.handleGetBoardGameImageThumbnailCalled = true
 }

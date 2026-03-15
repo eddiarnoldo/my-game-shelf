@@ -111,6 +111,35 @@ func (h *BoardGameHandler) HandleBoardGameDelete(c *gin.Context) {
 	c.Writer.WriteHeaderNow() // Force Gin to write the header immediately
 }
 
+func (h *BoardGameHandler) HandleBoardGameUpdate(c *gin.Context) {
+	idParam := c.Param("id")
+
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	var game models.BoardGame
+	if err := c.ShouldBindJSON(&game); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	game.ID = id
+
+	if err := h.repo.Update(c.Request.Context(), &game); err != nil {
+		if errors.Is(err, repository.ErrBoardGameNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Board game not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, game)
+}
+
 // Image handlers
 func (h *BoardGameHandler) HandleUploadBoardGameImage(c *gin.Context) {
 	boardGameIDParam := c.Param("id")

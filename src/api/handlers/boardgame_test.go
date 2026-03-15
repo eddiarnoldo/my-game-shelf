@@ -696,6 +696,150 @@ func TestHandleGetBoardGameImageThumbnail_NotFound(t *testing.T) {
 	}
 }
 
+func TestHandleBoardGameUpdate_OK(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{}
+	handler := NewBoardGameHandler(repo, nil)
+
+	body := []byte(`{
+		"name": "Catan Updated",
+		"min_players": 3,
+		"max_players": 6,
+		"play_time": 90,
+		"min_age": 10,
+		"description": "updated description"
+	}`)
+
+	req := httptest.NewRequest(http.MethodPut, "/api/boardgames/1", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	// Act
+	handler.HandleBoardGameUpdate(ctx)
+
+	// Assert
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d %s", rec.Code, rec.Body)
+	}
+
+	if !repo.updateCalled {
+		t.Fatal("expected Update() to be called on repository")
+	}
+}
+
+func TestHandleBoardGameUpdate_InvalidID(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{}
+	handler := NewBoardGameHandler(repo, nil)
+
+	req := httptest.NewRequest(http.MethodPut, "/api/boardgames/abc", nil)
+	req.Header.Set("Content-Type", "application/json")
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "abc"}}
+
+	// Act
+	handler.HandleBoardGameUpdate(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if repo.updateCalled {
+		t.Fatal("Update() should not be called on invalid ID")
+	}
+}
+
+func TestHandleBoardGameUpdate_BadRequestJSON(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{}
+	handler := NewBoardGameHandler(repo, nil)
+
+	body := []byte(`{"name": "Only Name"}`)
+
+	req := httptest.NewRequest(http.MethodPut, "/api/boardgames/1", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	// Act
+	handler.HandleBoardGameUpdate(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if repo.updateCalled {
+		t.Fatal("Update() should not be called on bad request")
+	}
+}
+
+func TestHandleBoardGameUpdate_NotFound(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{updateError: repository.ErrBoardGameNotFound}
+	handler := NewBoardGameHandler(repo, nil)
+
+	body := []byte(`{
+		"name": "Catan",
+		"min_players": 3,
+		"max_players": 6,
+		"play_time": 90,
+		"min_age": 10,
+		"description": "a description"
+	}`)
+
+	req := httptest.NewRequest(http.MethodPut, "/api/boardgames/999", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "999"}}
+
+	// Act
+	handler.HandleBoardGameUpdate(ctx)
+
+	// Assert
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d", rec.Code)
+	}
+
+	if !repo.updateCalled {
+		t.Fatal("expected Update() to be called on repository")
+	}
+}
+
+func TestHandleBoardGameUpdate_InternalServerError(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{updateError: ErrMockDBFailureType{}}
+	handler := NewBoardGameHandler(repo, nil)
+
+	body := []byte(`{
+		"name": "Catan",
+		"min_players": 3,
+		"max_players": 6,
+		"play_time": 90,
+		"min_age": 10,
+		"description": "a description"
+	}`)
+
+	req := httptest.NewRequest(http.MethodPut, "/api/boardgames/1", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	// Act
+	handler.HandleBoardGameUpdate(ctx)
+
+	// Assert
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected status 500, got %d", rec.Code)
+	}
+
+	if !repo.updateCalled {
+		t.Fatal("expected Update() to be called on repository")
+	}
+}
+
 // Helper mock repo and methods
 // Mocks in Go are about satisfying interfaces, not about test intent.
 type mockBoardGameRepo struct {
@@ -707,6 +851,8 @@ type mockBoardGameRepo struct {
 	getByIDError     error
 	deleteByIDCalled bool
 	deleteError      error
+	updateCalled     bool
+	updateError      error
 }
 
 func (m *mockBoardGameRepo) Create(ctx context.Context, game *models.BoardGame) error {
@@ -742,6 +888,11 @@ func (m *mockBoardGameRepo) Delete(ctx context.Context, id int64) error {
 		return m.deleteError
 	}
 	return nil
+}
+
+func (m *mockBoardGameRepo) Update(ctx context.Context, game *models.BoardGame) error {
+	m.updateCalled = true
+	return m.updateError
 }
 
 type mockBoardGameImageRepo struct {

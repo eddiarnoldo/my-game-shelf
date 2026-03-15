@@ -9,6 +9,7 @@ type BoardGameHandlerInterface interface {
 	HandleGetBoardGames(c *gin.Context)
 	HandleGetBoardGameByID(c *gin.Context)
 	HandleBoardGameDelete(c *gin.Context)
+	HandleBoardGameUpdate(c *gin.Context)
 	HandleUploadBoardGameImage(c *gin.Context)
 	HandleGetBoardGameCoverThumbnailImage(c *gin.Context)
 	HandleGetBoardGameImage(c *gin.Context)
@@ -22,6 +23,7 @@ func RegisterRoutes(router *gin.Engine, boardGameHandler BoardGameHandlerInterfa
 		api.GET("/boardgames", boardGameHandler.HandleGetBoardGames)
 		api.GET("/boardgames/:id", boardGameHandler.HandleGetBoardGameByID)
 		api.DELETE("/boardgames/:id", boardGameHandler.HandleBoardGameDelete)
+		api.PUT("/boardgames/:id", boardGameHandler.HandleBoardGameUpdate)
 		//Images
 		api.POST("/boardgame/:id/images", boardGameHandler.HandleUploadBoardGameImage)
 		api.GET("/boardgame/:id/images/coverThumbnail", boardGameHandler.HandleGetBoardGameCoverThumbnailImage)
