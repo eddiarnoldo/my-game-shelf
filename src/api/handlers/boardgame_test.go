@@ -177,7 +177,8 @@ func TestHandleGetAllBoardGames_errorRepo(t *testing.T) {
 func TestHandleGetBoardGameByID_OK(t *testing.T) {
 	// Arrange
 	repo := &mockBoardGameRepo{}
-	handler := NewBoardGameHandler(repo, nil)
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(repo, imageRepo)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/boardgames/1", nil)
 	ctx, rec := createTestContext(req)
@@ -314,12 +315,394 @@ func TestHandleBoardGameDelete_InternalServerError(t *testing.T) {
 	}
 }
 
+func TestHandleBoardGameCreate_RepoError(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{createError: ErrMockDBFailureType{}}
+	handler := NewBoardGameHandler(repo, nil)
+
+	body := []byte(`{
+		"name": "Catan",
+		"min_players": 4,
+		"max_players": 10,
+		"play_time": 60,
+		"min_age": 8,
+		"description": "a fun board game"
+	}`)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/boardgames", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx, rec := createTestContext(req)
+
+	// Act
+	handler.HandleBoardGameCreate(ctx)
+
+	// Assert
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected status 500, got %d", rec.Code)
+	}
+
+	if !repo.createCalled {
+		t.Fatal("expected Create() to be called on repository")
+	}
+}
+
+func TestHandleGetBoardGameByID_InvalidID(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{}
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(repo, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgames/abc", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "abc"}}
+
+	// Act
+	handler.HandleGetBoardGameByID(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if repo.getByIDCalled {
+		t.Fatal("GetByID() should not be called on invalid ID")
+	}
+}
+
+func TestHandleGetBoardGameByID_ImageRepoError(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{}
+	imageRepo := &mockBoardGameImageRepo{getImageDtosError: ErrMockDBFailureType{}}
+	handler := NewBoardGameHandler(repo, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgames/1", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	// Act
+	handler.HandleGetBoardGameByID(ctx)
+
+	// Assert
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected status 500, got %d", rec.Code)
+	}
+
+	if !repo.getByIDCalled {
+		t.Fatal("expected GetByID() to be called on repository")
+	}
+
+	if !imageRepo.getImageDtosCalled {
+		t.Fatal("expected GetBoardGameImageDtos() to be called on image repository")
+	}
+}
+
+func TestHandleBoardGameDelete_InvalidID(t *testing.T) {
+	// Arrange
+	repo := &mockBoardGameRepo{}
+	handler := NewBoardGameHandler(repo, nil)
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/boardgames/abc", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "abc"}}
+
+	// Act
+	handler.HandleBoardGameDelete(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if repo.deleteByIDCalled {
+		t.Fatal("Delete() should not be called on invalid ID")
+	}
+}
+
+func TestHandleGetBoardGameCoverThumbnailImage_OK(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/images/cover", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	// Act
+	handler.HandleGetBoardGameCoverThumbnailImage(ctx)
+
+	// Assert
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	if !imageRepo.getCoverThumbnailCalled {
+		t.Fatal("expected GetCoverThumbnail() to be called on image repository")
+	}
+
+	if rec.Body.Len() == 0 {
+		t.Fatal("expected non-empty response body")
+	}
+}
+
+func TestHandleGetBoardGameCoverThumbnailImage_InvalidID(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/abc/images/cover", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "abc"}}
+
+	// Act
+	handler.HandleGetBoardGameCoverThumbnailImage(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if imageRepo.getCoverThumbnailCalled {
+		t.Fatal("GetCoverThumbnail() should not be called on invalid ID")
+	}
+}
+
+func TestHandleGetBoardGameCoverThumbnailImage_NotFound(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{getCoverThumbnailError: ErrMockDBFailureType{}}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/images/cover", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	// Act
+	handler.HandleGetBoardGameCoverThumbnailImage(ctx)
+
+	// Assert
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d", rec.Code)
+	}
+
+	if !imageRepo.getCoverThumbnailCalled {
+		t.Fatal("expected GetCoverThumbnail() to be called on image repository")
+	}
+}
+
+func TestHandleGetBoardGameImage_OK(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/image/2", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "1"},
+		{Key: "imageId", Value: "2"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImage(ctx)
+
+	// Assert
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	if !imageRepo.getImageDataCalled {
+		t.Fatal("expected GetImageDataById() to be called on image repository")
+	}
+
+	if rec.Body.Len() == 0 {
+		t.Fatal("expected non-empty response body")
+	}
+}
+
+func TestHandleGetBoardGameImage_InvalidBoardGameID(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/abc/image/2", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "abc"},
+		{Key: "imageId", Value: "2"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImage(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if imageRepo.getImageDataCalled {
+		t.Fatal("GetImageDataById() should not be called on invalid board game ID")
+	}
+}
+
+func TestHandleGetBoardGameImage_InvalidImageID(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/image/abc", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "1"},
+		{Key: "imageId", Value: "abc"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImage(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if imageRepo.getImageDataCalled {
+		t.Fatal("GetImageDataById() should not be called on invalid image ID")
+	}
+}
+
+func TestHandleGetBoardGameImage_NotFound(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{getImageDataError: ErrMockDBFailureType{}}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/image/2", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "1"},
+		{Key: "imageId", Value: "2"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImage(ctx)
+
+	// Assert
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d", rec.Code)
+	}
+
+	if !imageRepo.getImageDataCalled {
+		t.Fatal("expected GetImageDataById() to be called on image repository")
+	}
+}
+
+func TestHandleGetBoardGameImageThumbnail_OK(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/image/2/thumbnail", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "1"},
+		{Key: "imageId", Value: "2"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImageThumbnail(ctx)
+
+	// Assert
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	if !imageRepo.getThumbnailDataCalled {
+		t.Fatal("expected GetThumbnailImageDataById() to be called on image repository")
+	}
+
+	if rec.Body.Len() == 0 {
+		t.Fatal("expected non-empty response body")
+	}
+}
+
+func TestHandleGetBoardGameImageThumbnail_InvalidBoardGameID(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/abc/image/2/thumbnail", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "abc"},
+		{Key: "imageId", Value: "2"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImageThumbnail(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if imageRepo.getThumbnailDataCalled {
+		t.Fatal("GetThumbnailImageDataById() should not be called on invalid board game ID")
+	}
+}
+
+func TestHandleGetBoardGameImageThumbnail_InvalidImageID(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/image/abc/thumbnail", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "1"},
+		{Key: "imageId", Value: "abc"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImageThumbnail(ctx)
+
+	// Assert
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+
+	if imageRepo.getThumbnailDataCalled {
+		t.Fatal("GetThumbnailImageDataById() should not be called on invalid image ID")
+	}
+}
+
+func TestHandleGetBoardGameImageThumbnail_NotFound(t *testing.T) {
+	// Arrange
+	imageRepo := &mockBoardGameImageRepo{getThumbnailDataError: ErrMockDBFailureType{}}
+	handler := NewBoardGameHandler(nil, imageRepo)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/boardgame/1/image/2/thumbnail", nil)
+	ctx, rec := createTestContext(req)
+	ctx.Params = gin.Params{
+		{Key: "id", Value: "1"},
+		{Key: "imageId", Value: "2"},
+	}
+
+	// Act
+	handler.HandleGetBoardGameImageThumbnail(ctx)
+
+	// Assert
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d", rec.Code)
+	}
+
+	if !imageRepo.getThumbnailDataCalled {
+		t.Fatal("expected GetThumbnailImageDataById() to be called on image repository")
+	}
+}
+
 // Helper mock repo and methods
 // Mocks in Go are about satisfying interfaces, not about test intent.
 type mockBoardGameRepo struct {
 	createCalled     bool
-	getAllCalled     bool
-	getAllError      error
+	createError      error
+	getAllCalled      bool
+	getAllError       error
 	getByIDCalled    bool
 	getByIDError     error
 	deleteByIDCalled bool
@@ -328,7 +711,7 @@ type mockBoardGameRepo struct {
 
 func (m *mockBoardGameRepo) Create(ctx context.Context, game *models.BoardGame) error {
 	m.createCalled = true
-	return nil
+	return m.createError
 }
 
 func (m *mockBoardGameRepo) GetAll(ctx context.Context) ([]*models.BoardGame, error) {
@@ -362,28 +745,75 @@ func (m *mockBoardGameRepo) Delete(ctx context.Context, id int64) error {
 }
 
 type mockBoardGameImageRepo struct {
-	createCalled     bool
-	getAllCalled     bool
-	getByIDCalled    bool
-	deleteByIDCalled bool
+	saveImageCalled          bool
+	saveImageError           error
+	getImageDtosCalled       bool
+	getImageDtosError        error
+	getCoverThumbnailCalled  bool
+	getCoverThumbnailError   error
+	deleteImageCalled        bool
+	deleteImageError         error
+	getMaxDisplayOrderCalled bool
+	getMaxDisplayOrderError  error
+	getMaxDisplayOrderResult int
+	getImageDataCalled       bool
+	getImageDataError        error
+	getThumbnailDataCalled   bool
+	getThumbnailDataError    error
 }
 
 func (m *mockBoardGameImageRepo) SaveImage(ctx context.Context, image *models.BoardGameImage) error {
-	m.createCalled = true
-	return nil
+	m.saveImageCalled = true
+	return m.saveImageError
 }
 
-func (m *mockBoardGameImageRepo) GetAllImagesForBoardGame(ctx context.Context, boardGameId int64, imageType string) ([]*models.BoardGameImage, error) {
-	m.getAllCalled = true
-	return []*models.BoardGameImage{}, nil
+func (m *mockBoardGameImageRepo) GetBoardGameImageDtos(ctx context.Context, boardGameId int64) ([]models.BoardGameImageDto, error) {
+	m.getImageDtosCalled = true
+	if m.getImageDtosError != nil {
+		return nil, m.getImageDtosError
+	}
+	return []models.BoardGameImageDto{}, nil
 }
 
 func (m *mockBoardGameImageRepo) GetCoverThumbnail(ctx context.Context, boardGameId int64) (*models.BoardGameImage, error) {
-	m.getByIDCalled = true
-	return &models.BoardGameImage{}, nil
+	m.getCoverThumbnailCalled = true
+	if m.getCoverThumbnailError != nil {
+		return nil, m.getCoverThumbnailError
+	}
+	return &models.BoardGameImage{
+		ImageMimeType: "image/jpeg",
+		ThumbnailData: []byte("fake-thumbnail"),
+	}, nil
 }
 
 func (m *mockBoardGameImageRepo) DeleteImage(ctx context.Context, id int64) error {
-	m.deleteByIDCalled = true
-	return nil
+	m.deleteImageCalled = true
+	return m.deleteImageError
+}
+
+func (m *mockBoardGameImageRepo) GetMaxDisplayOrder(ctx context.Context, boardGameId int64) (int, error) {
+	m.getMaxDisplayOrderCalled = true
+	return m.getMaxDisplayOrderResult, m.getMaxDisplayOrderError
+}
+
+func (m *mockBoardGameImageRepo) GetImageDataById(ctx context.Context, boardGameId int64, imageId int64) (*models.BoardGameImageData, error) {
+	m.getImageDataCalled = true
+	if m.getImageDataError != nil {
+		return nil, m.getImageDataError
+	}
+	return &models.BoardGameImageData{
+		Data:          []byte("fake-image"),
+		ImageMimeType: "image/jpeg",
+	}, nil
+}
+
+func (m *mockBoardGameImageRepo) GetThumbnailImageDataById(ctx context.Context, boardGameId int64, imageId int64) (*models.BoardGameImageData, error) {
+	m.getThumbnailDataCalled = true
+	if m.getThumbnailDataError != nil {
+		return nil, m.getThumbnailDataError
+	}
+	return &models.BoardGameImageData{
+		Data:          []byte("fake-thumbnail"),
+		ImageMimeType: "image/jpeg",
+	}, nil
 }

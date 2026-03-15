@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import ImageUploadButton from '../components/ImageUploadButton';
 
 export default function AddGamePage() {
   const navigate = useNavigate();
@@ -16,28 +17,12 @@ export default function AddGamePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file');
-        return;
-      }
-
-      if (file.size > 10 * 1024 * 1024) {
-        setError('Image must be less than 10MB');
-        return;
-      }
-
-      setCoverImage(file);
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  useEffect(() => {
+    if (!coverImage) { setImagePreview(null); return; }
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(coverImage);
+  }, [coverImage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,13 +46,13 @@ export default function AddGamePage() {
       const gameId = newGame.id;
 
       if (coverImage) {
-        const formData = new FormData();
-        formData.append('image', coverImage);
-        formData.append('imageType', 'cover');
+        const imageFormData = new FormData();
+        imageFormData.append('image', coverImage);
+        imageFormData.append('imageType', 'cover');
 
         const imageResponse = await fetch(`/api/boardgame/${gameId}/images`, {
           method: 'POST',
-          body: formData
+          body: imageFormData
         });
 
         if (!imageResponse.ok) {
@@ -90,6 +75,11 @@ export default function AddGamePage() {
     }));
   };
 
+  const inputClass = "w-full p-3 rounded-lg border border-[#444] bg-[#1a1a1a] text-white text-sm md:text-base min-h-[48px] focus:outline-none focus:ring-2 focus:ring-[#4a9eff] focus:border-[#4a9eff] transition-colors duration-200 placeholder:text-[#666]";
+  const labelClass = "block text-[#ccc] mb-2 text-sm font-medium";
+  const sectionLabelClass = "text-[#999] text-xs uppercase tracking-widest mb-4 font-semibold";
+  const cardClass = "bg-[#2d2d2d] rounded-xl p-5 md:p-6";
+
   return (
     <div className="h-screen overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
       <Link to="/" className="text-[#4a9eff] no-underline mb-4 md:mb-5 inline-block text-base md:text-lg pl-14 md:pl-0">
@@ -104,131 +94,158 @@ export default function AddGamePage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="w-full max-w-full md:max-w-2xl lg:max-w-3xl">
-        <div className="mb-5 md:mb-6">
-          <label className="block text-white mb-2 text-sm md:text-base font-medium">
-            Cover Image
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full p-3 rounded-md border border-[#444] bg-[#2d2d2d] text-white text-sm md:text-base min-h-[48px]"
-          />
-          {imagePreview && (
-            <div className="mt-3">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full max-w-[200px] md:max-w-[250px] rounded-md border-2 border-[#444]"
-              />
+      <form onSubmit={handleSubmit} className="w-full max-w-5xl">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+
+          {/* Left column — Cover image card */}
+          <div className="w-full lg:w-[300px] flex-shrink-0 lg:sticky lg:top-0">
+            <div className={cardClass}>
+              <p className={sectionLabelClass}>🖼 Cover Image</p>
+              {imagePreview ? (
+                <div>
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Cover preview"
+                      className="w-full aspect-square object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCoverImage(null)}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#1a1a1a]/80 text-white flex items-center justify-center text-sm hover:bg-[#ff4444] transition-colors duration-200"
+                      aria-label="Remove image"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {coverImage && (
+                    <p className="text-[#666] text-xs mt-2 truncate">{coverImage.name}</p>
+                  )}
+                </div>
+              ) : (
+                <ImageUploadButton onImageSelected={(f) => setCoverImage(f)} disabled={submitting} />
+              )}
             </div>
-          )}
-        </div>
-
-        <div className="mb-5 md:mb-6">
-          <label className="block text-white mb-2 text-sm md:text-base font-medium">
-            Game Name *
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full p-3 rounded-md border border-[#444] bg-[#2d2d2d] text-white text-sm md:text-base min-h-[48px]"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-          <div className="mb-5 md:mb-6">
-            <label className="block text-white mb-2 text-sm md:text-base font-medium">
-              Minimum Players *
-            </label>
-            <input
-              type="number"
-              name="min_players"
-              value={formData.min_players}
-              onChange={handleChange}
-              min="1"
-              required
-              className="w-full p-3 rounded-md border border-[#444] bg-[#2d2d2d] text-white text-sm md:text-base min-h-[48px]"
-            />
           </div>
 
-          <div className="mb-5 md:mb-6">
-            <label className="block text-white mb-2 text-sm md:text-base font-medium">
-              Maximum Players *
-            </label>
-            <input
-              type="number"
-              name="max_players"
-              value={formData.max_players}
-              onChange={handleChange}
-              min="1"
-              required
-              className="w-full p-3 rounded-md border border-[#444] bg-[#2d2d2d] text-white text-sm md:text-base min-h-[48px]"
-            />
+          {/* Right column — Form section cards */}
+          <div className="flex-1 flex flex-col gap-5">
+
+            {/* Card 1 — Game Details */}
+            <div className={cardClass}>
+              <p className={sectionLabelClass}>🎮 Game Details</p>
+              <div>
+                <label className={labelClass}>
+                  Game Name <span className="text-[#ff4444]">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. Wingspan"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            {/* Card 2 — Players & Time */}
+            <div className={cardClass}>
+              <p className={sectionLabelClass}>👥 Players &amp; Time</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>
+                    Min Players <span className="text-[#ff4444]">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="min_players"
+                    value={formData.min_players}
+                    onChange={handleChange}
+                    min="1"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    Max Players <span className="text-[#ff4444]">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="max_players"
+                    value={formData.max_players}
+                    onChange={handleChange}
+                    min="1"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    Play Time (min) <span className="text-[#ff4444]">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="play_time"
+                    value={formData.play_time}
+                    onChange={handleChange}
+                    min="1"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    Min Age <span className="text-[#ff4444]">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="min_age"
+                    value={formData.min_age}
+                    onChange={handleChange}
+                    min="1"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3 — Description */}
+            <div className={cardClass}>
+              <p className={sectionLabelClass}>📝 Description</p>
+              <div>
+                <label className={labelClass}>
+                  Description <span className="text-[#ff4444]">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                  rows={5}
+                  className={`${inputClass} resize-y min-h-[120px]`}
+                />
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`w-full py-4 rounded-xl font-semibold text-base min-h-[52px] text-white border-none cursor-pointer transition-colors duration-200 active:scale-[0.98] ${
+                submitting
+                  ? 'bg-[#444] text-[#999] cursor-not-allowed'
+                  : 'bg-[#4a9eff] hover:bg-[#3a8eef] shadow-lg shadow-[#4a9eff]/20'
+              }`}
+            >
+              {submitting ? 'Adding...' : 'Add Game to Shelf'}
+            </button>
+
           </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-          <div className="mb-5 md:mb-6">
-            <label className="block text-white mb-2 text-sm md:text-base font-medium">
-              Play Time (minutes) *
-            </label>
-            <input
-              type="number"
-              name="play_time"
-              value={formData.play_time}
-              onChange={handleChange}
-              min="1"
-              required
-              className="w-full p-3 rounded-md border border-[#444] bg-[#2d2d2d] text-white text-sm md:text-base min-h-[48px]"
-            />
-          </div>
-
-          <div className="mb-5 md:mb-6">
-            <label className="block text-white mb-2 text-sm md:text-base font-medium">
-              Minimum Age *
-            </label>
-            <input
-              type="number"
-              name="min_age"
-              value={formData.min_age}
-              onChange={handleChange}
-              min="1"
-              required
-              className="w-full p-3 rounded-md border border-[#444] bg-[#2d2d2d] text-white text-sm md:text-base min-h-[48px]"
-            />
-          </div>
-        </div>
-
-        <div className="mb-6 md:mb-8">
-          <label className="block text-white mb-2 text-sm md:text-base font-medium">
-            Description *
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            required
-            rows={4}
-            className="w-full p-3 rounded-md border border-[#444] bg-[#2d2d2d] text-white text-sm md:text-base resize-y min-h-[120px]"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className={`w-full md:w-auto px-6 md:px-8 py-3 md:py-4 text-white border-none rounded-md text-base md:text-lg cursor-pointer transition-colors duration-200 min-h-[48px] font-medium ${
-            submitting
-              ? 'bg-[#666] cursor-not-allowed'
-              : 'bg-[#4a9eff] hover:bg-[#3a8eef] active:scale-95'
-          }`}
-        >
-          {submitting ? 'Adding...' : 'Add Game'}
-        </button>
       </form>
     </div>
   );
