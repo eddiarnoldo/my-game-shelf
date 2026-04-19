@@ -10,12 +10,12 @@ import (
 	"github.com/eddiarnoldo/my-game-shelf/src/config"
 	"github.com/eddiarnoldo/my-game-shelf/src/db"
 	"github.com/eddiarnoldo/my-game-shelf/src/internal/repository"
+	"github.com/eddiarnoldo/my-game-shelf/src/internal/services"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/joho/godotenv"
 )
 
-// Abstract run function to allow easier testing of main logic
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
@@ -24,7 +24,6 @@ func main() {
 }
 
 func run() error {
-	//Create dbURL and run migrations
 	err, dbURL := initializeDatabase()
 	if err != nil {
 		return err
@@ -34,15 +33,33 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
 	defer dbPool.Close()
 
-	// Initialize repositories
 	boardGameRepo := repository.NewBoardGameRepository(dbPool)
 	imageRepo := repository.NewBoardGameImageRepository(dbPool)
+	userRepo := repository.NewUserRepository(dbPool)
+	sessionRepo := repository.NewSessionRepository(dbPool)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(dbPool)
+	inviteRepo := repository.NewInviteRepository(dbPool)
 
-	// Init server
-	if err := api.InitServer(boardGameRepo, imageRepo); err != nil {
+	emailService := services.NewSMTPEmailService(
+		config.GetEnv("SMTP_HOST", ""),
+		config.GetEnv("SMTP_PORT", "587"),
+		config.GetEnv("SMTP_USER", ""),
+		config.GetEnv("SMTP_PASSWORD", ""),
+		config.GetEnv("SMTP_FROM", ""),
+		config.GetEnv("APP_BASE_URL", "http://localhost:5173"),
+	)
+
+	if err := api.InitServer(
+		boardGameRepo,
+		imageRepo,
+		userRepo,
+		sessionRepo,
+		refreshTokenRepo,
+		inviteRepo,
+		emailService,
+	); err != nil {
 		return err
 	}
 
@@ -50,12 +67,10 @@ func run() error {
 }
 
 func initializeDatabase() (error, string) {
-	// Load .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
 	}
 
-	// Load environment variables
 	dbUser := config.GetEnv("DB_USER", "mygameshelf")
 	dbPassword := config.GetEnv("DB_PASSWORD", "")
 	dbHost := config.GetEnv("DB_HOST", "localhost")
@@ -65,13 +80,11 @@ func initializeDatabase() (error, string) {
 		log.Fatal("DB_PASSWORD environment variable is required")
 	}
 
-	// Build database URL
 	dbURL := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		dbUser, dbPassword, dbHost, dbPort, dbName,
 	)
 
-	// Run migrations
 	if err := runMigrations(dbURL); err != nil {
 		log.Fatalf("Migration failed: %v", err)
 		return err, "failed"
@@ -81,7 +94,6 @@ func initializeDatabase() (error, string) {
 }
 
 func connectToDatabase(dbURL string) (*pgxpool.Pool, error) {
-	// Connect to database
 	log.Println("Connecting to database...")
 	dbPool, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
@@ -89,7 +101,6 @@ func connectToDatabase(dbURL string) (*pgxpool.Pool, error) {
 		return nil, err
 	}
 
-	// Verify connection
 	if err := dbPool.Ping(context.Background()); err != nil {
 		log.Fatalf("Unable to ping database: %v", err)
 		return nil, err
@@ -101,6 +112,5 @@ func connectToDatabase(dbURL string) (*pgxpool.Pool, error) {
 
 func runMigrations(dbURL string) error {
 	log.Println("Running database migrations...")
-	err := db.RunMigrations(dbURL)
-	return err
+	return db.RunMigrations(dbURL)
 }

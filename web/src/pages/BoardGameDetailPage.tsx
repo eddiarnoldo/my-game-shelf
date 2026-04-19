@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ImageGallery from '../components/ImageGallery';
+import { useAuth } from '../context/AuthContext';
 
 interface BoardGameImageDto {
   id: number;
@@ -26,6 +27,7 @@ interface BoardGame {
 export default function BoardGameDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, accessToken } = useAuth();
   const [game, setGame] = useState<BoardGame | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -65,7 +67,8 @@ export default function BoardGameDetailPage() {
 
     try {
       const response = await fetch(`/api/boardgames/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
       });
 
       if (!response.ok) {
@@ -102,26 +105,28 @@ export default function BoardGameDetailPage() {
           ← Back to games
         </Link>
 
-        <div className="flex items-center gap-2">
-          <Link
-            to={`/boardgame/${id}/edit`}
-            className="text-white no-underline text-sm md:text-base font-semibold px-4 py-2 rounded-lg bg-[#4a9eff] hover:bg-[#3a8eef] transition-colors duration-200 min-h-[44px] flex items-center"
-          >
-            Edit
-          </Link>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className={`border-none text-white text-xl md:text-2xl font-bold cursor-pointer px-3 py-2 rounded-lg transition-all duration-200 flex items-center justify-center min-w-[44px] min-h-[44px] ${
-              deleting
-                ? 'bg-[#444] cursor-not-allowed'
-                : 'bg-[#ff4444] hover:scale-110 active:scale-95'
-            }`}
-            title="Delete game"
-          >
-            ✕
-          </button>
-        </div>
+        {user && (
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/boardgame/${id}/edit`}
+              className="text-white no-underline text-sm md:text-base font-semibold px-4 py-2 rounded-lg bg-[#4a9eff] hover:bg-[#3a8eef] transition-colors duration-200 min-h-[44px] flex items-center"
+            >
+              Edit
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className={`border-none text-white text-xl md:text-2xl font-bold cursor-pointer px-3 py-2 rounded-lg transition-all duration-200 flex items-center justify-center min-w-[44px] min-h-[44px] ${
+                deleting
+                  ? 'bg-[#444] cursor-not-allowed'
+                  : 'bg-[#ff4444] hover:scale-110 active:scale-95'
+              }`}
+              title="Delete game"
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main content - stack on mobile, side-by-side on desktop */}

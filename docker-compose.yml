@@ -17,6 +17,14 @@ services:
       - internal
     # No ports - database is internal only
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: my-game-shelf-mailpit
+    restart: unless-stopped
+    networks:
+      - internal
+    # No ports exposed — only reachable by the app container via internal network
+
   app:
     build: .
     container_name: my-game-shelf-app
@@ -26,11 +34,18 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: ${DB_USER:-mygameshelf}
-      DB_PASSWORD: ${DB_PASSWORD}:-CHANGE_ME}
+      DB_PASSWORD: ${DB_PASSWORD:-CHANGE_ME}
       DB_NAME: ${DB_NAME:-my_game_shelf}
+      JWT_SECRET: ${JWT_SECRET}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: ${SMTP_FROM:-noreply@mygameshelf.local}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     restart: unless-stopped
     networks:
       - internal

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "jwt-security": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "computedHash": "07d22bb08ad8ac8ffcb90885bb04c04ec7e6f5498eb63580ca6072a4c1694c80"
+    }
+  }
+}

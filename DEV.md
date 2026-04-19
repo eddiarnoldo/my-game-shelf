@@ -1,7 +1,7 @@
 
 # How to run the project in dev mode
 
-- Start ONLY the database
+- Start the database and the local mail server (Mailpit)
 `docker compose -f docker-compose.dev.yml up -d`
 
 - Run your Go app directly on your machine
@@ -10,8 +10,34 @@
 - Make changes to code, save, restart (Press Ctrl+C, then run again)
 `go run ./cmd/`
 
-- When done, stop database
+- When done, stop services
 `docker-compose -f docker-compose.dev.yml down`
+
+## Viewing emails locally (Mailpit)
+
+The dev compose starts **Mailpit**, a local SMTP server that catches all outgoing emails without actually sending them. Open the web UI to read invite emails:
+
+```
+http://localhost:8025
+```
+
+No configuration needed — the `.env` is already set to point to Mailpit (`SMTP_HOST=localhost`, `SMTP_PORT=1025`).
+
+## JWT Secret
+
+The app requires a `JWT_SECRET` to sign authentication tokens. Generate one before first run:
+
+```bash
+openssl rand -base64 32
+```
+
+Paste the output into `src/.env`:
+
+```
+JWT_SECRET=your-generated-value-here
+```
+
+**Never commit this value to git.** If it leaks, all existing sessions become invalid after you rotate it (which is the correct response).
 
 # DB Migrations
 

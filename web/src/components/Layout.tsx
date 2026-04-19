@@ -1,8 +1,19 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `text-white no-underline block px-3 py-3 rounded-md transition-colors duration-200 hover:bg-[#3d3d3d] text-base md:text-lg ${isActive ? 'bg-[#444]' : 'bg-transparent'}`;
 
   return (
     <div className="flex h-screen w-screen">
@@ -25,9 +36,9 @@ export default function Layout() {
         />
       )}
 
-      {/* Sidebar - slide out on mobile, always visible on desktop */}
+      {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-[250px] bg-[#2d2d2d] text-white p-5 flex-shrink-0 h-screen overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-[250px] bg-[#2d2d2d] text-white p-5 flex-shrink-0 h-screen overflow-y-auto flex flex-col transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -44,32 +55,57 @@ export default function Layout() {
           </button>
         </div>
 
-        <nav>
+        <nav className="flex-1">
           <ul className="list-none p-0 space-y-2">
             <li>
-              <NavLink
-                to="/"
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `text-white no-underline block px-3 py-3 rounded-md transition-colors duration-200 hover:bg-[#3d3d3d] text-base md:text-lg ${isActive ? 'bg-[#444]' : 'bg-transparent'}`
-                }
-              >
+              <NavLink to="/" onClick={() => setSidebarOpen(false)} className={navLinkClass}>
                 📚 Board Games
               </NavLink>
             </li>
-            <li>
-              <NavLink
-                to="/add"
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `text-white no-underline block px-3 py-3 rounded-md transition-colors duration-200 hover:bg-[#3d3d3d] text-base md:text-lg ${isActive ? 'bg-[#444]' : 'bg-transparent'}`
-                }
-              >
-                ➕ Add Game
-              </NavLink>
-            </li>
+
+            {user?.role === 'admin' && (
+              <li>
+                <NavLink to="/add" onClick={() => setSidebarOpen(false)} className={navLinkClass}>
+                  ➕ Add Game
+                </NavLink>
+              </li>
+            )}
+
+            {user?.role === 'admin' && (
+              <li>
+                <NavLink to="/invite" onClick={() => setSidebarOpen(false)} className={navLinkClass}>
+                  ✉ Invite
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
+
+        {/* User section at bottom of sidebar */}
+        <div className="mt-auto pt-4 border-t border-[#444]">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#4a9eff] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                {user.username[0].toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-medium truncate">{user.username}</p>
+                <p className="text-[#999] text-xs capitalize">{user.role}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-[#999] hover:text-white text-xs px-2 py-1 rounded hover:bg-[#3d3d3d] transition-colors duration-200 flex-shrink-0"
+                aria-label="Log out"
+              >
+                Out
+              </button>
+            </div>
+          ) : (
+            <NavLink to="/login" onClick={() => setSidebarOpen(false)} className={navLinkClass}>
+              Sign In
+            </NavLink>
+          )}
+        </div>
       </aside>
 
       {/* Main content */}

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function EditGamePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     min_players: 1,
@@ -47,7 +49,10 @@ export default function EditGamePage() {
     try {
       const response = await fetch(`/api/boardgames/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(formData)
       });
 

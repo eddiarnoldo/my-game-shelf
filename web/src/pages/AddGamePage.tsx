@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ImageUploadButton from '../components/ImageUploadButton';
+import { useAuth } from '../context/AuthContext';
 
 export default function AddGamePage() {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     min_players: 1,
@@ -34,6 +36,7 @@ export default function AddGamePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify(formData)
       });
@@ -52,6 +55,7 @@ export default function AddGamePage() {
 
         const imageResponse = await fetch(`/api/boardgame/${gameId}/images`, {
           method: 'POST',
+          headers: { 'Authorization': `Bearer ${accessToken}` },
           body: imageFormData
         });
 
