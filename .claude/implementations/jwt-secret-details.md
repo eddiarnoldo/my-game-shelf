@@ -40,4 +40,22 @@ JWT_SECRET is the private key used to sign and verify JWTs.
           return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])                                                                       
       }                                                                                                                                                  
       return []byte(jwtSecret), nil  // ← this is where the secret is used to verify                                                                     
-  })   
+  }) 
+
+
+# How can I generate it?                                                                                                        
+                                                                                                                                                         
+  openssl (simplest):                                                                                                                                    
+  openssl rand -base64 32                                                                                                                                
+                                                                                                                                                         
+  /dev/urandom via xxd:                                                                                                                                  
+  head -c 32 /dev/urandom | xxd -p | tr -d '\n'                                       
+                                                                                                                                                         
+  Python (built-in):                                                                                                                                     
+  python3 -c "import secrets; print(secrets.token_hex(32))"
+                                                                                                                                                         
+  Run any of these in terminal, copy the output, paste it into src/.env:                                                                                 
+                                                                                                                                                         
+  JWT_SECRET=your-generated-value-here                                                                                                                   
+                                                                                                                                                         
+  The openssl one is the most common. Output looks like: K8mP3xQz9vL2nR7wY1cA5jF6hE0tB4sD+uG8iN=  

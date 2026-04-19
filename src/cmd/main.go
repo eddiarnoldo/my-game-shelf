@@ -42,14 +42,21 @@ func run() error {
 	refreshTokenRepo := repository.NewRefreshTokenRepository(dbPool)
 	inviteRepo := repository.NewInviteRepository(dbPool)
 
-	emailService := services.NewSMTPEmailService(
-		config.GetEnv("SMTP_HOST", ""),
-		config.GetEnv("SMTP_PORT", "587"),
-		config.GetEnv("SMTP_USER", ""),
-		config.GetEnv("SMTP_PASSWORD", ""),
-		config.GetEnv("SMTP_FROM", ""),
+	// Option 1: Gmail — sends real emails to your inbox.
+	// Requires GMAIL_APP_PASSWORD in .env (generate at myaccount.google.com → Security → App Passwords).
+	gmailPass := config.GetEnv("GMAIL_APP_PASSWORD", "")
+	log.Printf("DEBUG GMAIL_APP_PASSWORD=%q", gmailPass)
+	emailService := services.NewGmailEmailService(
+		"eddiarnoldo@gmail.com",
+		gmailPass,
 		config.GetEnv("APP_BASE_URL", "http://localhost:5173"),
 	)
+
+	// Option 2: Mailpit — captures emails locally, no real sends.
+	// View at http://localhost:8025. Requires docker-compose.dev.yml to be running.
+	// emailService := services.NewMailpitEmailService(
+	// 	config.GetEnv("APP_BASE_URL", "http://localhost:5173"),
+	// )
 
 	if err := api.InitServer(
 		boardGameRepo,

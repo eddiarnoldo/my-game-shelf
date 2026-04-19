@@ -13,15 +13,32 @@
 - When done, stop services
 `docker-compose -f docker-compose.dev.yml down`
 
-## Viewing emails locally (Mailpit)
+## Email — switching between Gmail and Mailpit
 
-The dev compose starts **Mailpit**, a local SMTP server that catches all outgoing emails without actually sending them. Open the web UI to read invite emails:
+`src/cmd/main.go` has two options. Only one should be active at a time.
 
+**Option 1 — Gmail (sends real emails):**
+```go
+emailService := services.NewGmailEmailService(
+    "eddiarnoldo@gmail.com",
+    config.GetEnv("GMAIL_APP_PASSWORD", ""),
+    config.GetEnv("APP_BASE_URL", "http://localhost:5173"),
+)
 ```
-http://localhost:8025
+Requires a Gmail App Password in `src/.env`:
 ```
+GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+```
+Generate one at: **myaccount.google.com → Security → 2-Step Verification → App Passwords**
+(Name it anything, e.g. "my-game-shelf". Use the 16-char code it gives you.)
 
-No configuration needed — the `.env` is already set to point to Mailpit (`SMTP_HOST=localhost`, `SMTP_PORT=1025`).
+**Option 2 — Mailpit (local dev, no real sends):**
+```go
+// emailService := services.NewMailpitEmailService(
+//     config.GetEnv("APP_BASE_URL", "http://localhost:5173"),
+// )
+```
+Uncomment this block and comment out the Gmail block. Emails are captured at `http://localhost:8025`. No credentials needed.
 
 ## JWT Secret
 
